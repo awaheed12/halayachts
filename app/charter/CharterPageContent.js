@@ -134,7 +134,7 @@ export default function CharterPageContent() {
     passengers: 'all'
   });
 
-  const itemsPerPage = 6;
+  const itemsPerPage = 12;
   const yachtGridRef = useRef(null);
 
   // URL se filters receive karein
