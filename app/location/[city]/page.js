@@ -27,7 +27,8 @@ const PAGE_STYLES = {
   emptyStateIcon: "w-16 h-16 text-gray-400 mx-auto mb-4",
   emptyStateTitle: "text-2xl font-light text-gray-600 mb-2",
   emptyStateText: "text-gray-500 mb-6",
-  emptyStateButton: "inline-flex items-center gap-2 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors"
+  emptyStateButton:
+    "inline-flex items-center gap-2 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors",
 };
 
 // Filter logic constants
@@ -36,20 +37,20 @@ const FILTER_LOGIC = {
   length: {
     "0-50": (yachtLength) => yachtLength <= 50,
     "50-90": (yachtLength) => yachtLength >= 50 && yachtLength <= 90,
-    "90+": (yachtLength) => yachtLength > 90
+    "90+": (yachtLength) => yachtLength > 90,
   },
   budget: {
     "0-5000": (yachtPrice) => yachtPrice <= 5000,
     "5000-10000": (yachtPrice) => yachtPrice >= 5000 && yachtPrice <= 10000,
-    "10000-15000": (yachtPrice) => yachtPrice >= 10000 && yachtPrice <= 15000
+    "10000-15000": (yachtPrice) => yachtPrice >= 10000 && yachtPrice <= 15000,
   },
   passengers: {
-    "2": (yachtPassengers) => yachtPassengers >= 2,
-    "4": (yachtPassengers) => yachtPassengers >= 4,
-    "6": (yachtPassengers) => yachtPassengers >= 6,
-    "8": (yachtPassengers) => yachtPassengers >= 8,
-    "10+": (yachtPassengers) => yachtPassengers >= 10
-  }
+    2: (yachtPassengers) => yachtPassengers >= 2,
+    4: (yachtPassengers) => yachtPassengers >= 4,
+    6: (yachtPassengers) => yachtPassengers >= 6,
+    8: (yachtPassengers) => yachtPassengers >= 8,
+    "10+": (yachtPassengers) => yachtPassengers >= 10,
+  },
 };
 
 export default function LocationDetail() {
@@ -73,17 +74,18 @@ export default function LocationDetail() {
   });
 
   // Get all yachts for current location
-  const allLocationYachts = useMemo(() => 
-    yachts.filter((yacht) => {
-      const yachtLocation = yacht.location?.city;
-      const currentLocation = location.title;
+  const allLocationYachts = useMemo(
+    () =>
+      yachts.filter((yacht) => {
+        const yachtLocation = yacht.location?.city;
+        const currentLocation = location.title;
 
-      return (
-        yachtLocation === currentLocation ||
-        yachtLocation?.includes(location.title.split(",")[0]) ||
-        currentLocation.includes(yachtLocation?.split(",")[0])
-      );
-    }),
+        return (
+          yachtLocation === currentLocation ||
+          yachtLocation?.includes(location.title.split(",")[0]) ||
+          currentLocation.includes(yachtLocation?.split(",")[0])
+        );
+      }),
     [location.title]
   );
 
@@ -158,7 +160,6 @@ export default function LocationDetail() {
       <section className={PAGE_STYLES.section}>
         <div className={PAGE_STYLES.container}>
           <div className={PAGE_STYLES.content}>
-            
             {/* Header Section */}
             <div className={PAGE_STYLES.header}>
               <h1 className={PAGE_STYLES.title}>
@@ -171,9 +172,9 @@ export default function LocationDetail() {
                 </span>{" "}
                 {filteredYachts.length === 1 ? "yacht is" : "yachts are"}{" "}
                 available for charter in {location.title}. Use the filters below
-                to explore available yachts departing from {locationName}. 
-                Choose your preferred vessel size, amenities, and duration — 
-                and our team will ensure every detail matches your expectations.
+                to explore available yachts departing from {locationName}.
+                Choose your preferred vessel size, amenities, and duration — and
+                our team will ensure every detail matches your expectations.
               </p>
             </div>
 
@@ -199,7 +200,7 @@ export default function LocationDetail() {
                 ))}
               </div>
             ) : (
-              <EmptyState 
+              <EmptyState
                 location={location.title}
                 locationName={locationName}
               />
@@ -220,20 +221,16 @@ const EmptyState = ({ location, locationName }) => (
         No Yachts Match Your Filters
       </h3>
       <p className={PAGE_STYLES.emptyStateText}>
-        There are no yachts available in {location} that match
-        your current filters. Try adjusting your criteria.
+        There are no yachts available in {location} that match your current
+        filters. Try adjusting your criteria.
       </p>
-      <Link
-        href="/location"
-        className={PAGE_STYLES.emptyStateButton}
-      >
+      <Link href="/location" className={PAGE_STYLES.emptyStateButton}>
         Browse All Locations
       </Link>
     </div>
   </div>
 );
 
-// Empty State Icon Component
 const EmptyStateIcon = () => (
   <svg
     className={PAGE_STYLES.emptyStateIcon}
