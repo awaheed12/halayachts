@@ -1,12 +1,35 @@
-// components/HomeSearchSection.js
 'use client';
-import { memo, useState, useRef, useEffect } from 'react';
+import { memo, useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import SearchFilter from './SearchFilter';
 import { toast } from 'react-toastify';
 import { useSearchParams } from 'next/navigation';
 
-const HomeSearchSection = ({
+// Loading component for search section
+function HomeSearchSectionLoader() {
+  return (
+    <section className="2xl:pt-64 2xl:pb-24 lg:pb-5 lg:py-24 py-8 px-5 xl:relative">
+      <div className="2xl:max-w-[78rem] max-w-7xl mx-auto rounded-[20px] xl:py-20 sm:py-16 py-7 2xl:absolute 2xl:w-full 2xl:right-0 2xl:left-0 2xl:-top-40 bg-white shadow-xl">
+        <div className="flex flex-col sm:gap-7 gap-5 xl:px-20 px-7">
+          <div className="h-12 bg-gray-200 animate-pulse rounded"></div>
+          <div className="h-6 bg-gray-200 animate-pulse rounded w-3/4"></div>
+          <div className="border-t border-gray-300"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-16 bg-gray-200 animate-pulse rounded-lg"></div>
+            ))}
+          </div>
+          <div className="flex justify-end">
+            <div className="h-12 bg-gray-200 animate-pulse rounded w-32"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// Main component content
+function HomeSearchSectionContent({
   heading = "2,000+ Yachts for Charter Worldwide",
   description = [
     "Choose your destination and style.",
@@ -16,7 +39,7 @@ const HomeSearchSection = ({
   className = "",
   headingSize = "",
   textSize = ""
-}) => {
+}) {
   const searchParams = useSearchParams();
   
   // URL se initial filters load karo
@@ -206,6 +229,15 @@ const HomeSearchSection = ({
         </div>
       </div>
     </section>
+  );
+}
+
+// Main exported component with Suspense
+const HomeSearchSection = (props) => {
+  return (
+    <Suspense fallback={<HomeSearchSectionLoader />}>
+      <HomeSearchSectionContent {...props} />
+    </Suspense>
   );
 };
 

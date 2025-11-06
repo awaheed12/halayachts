@@ -1,13 +1,21 @@
+import { Suspense } from 'react';
 import Banner from "./components/Banner";
 import Community from "./components/community";
 import WhyHalaYachts from "./components/WhyHalaYachts";
 import YachtCard from "./components/YachtCard";
 import yachts from "../data/yachts.json";
-import locationsData from "../data/locations.json"; // Locations data import karo
+import locationsData from "../data/locations.json";
 import { GoArrowUpRight } from "react-icons/go";
 import Link from "next/link";
 import SearchHomeSection from "./components/SearchHomeSection";
 import LocationCard from "./components/LocationCard";
+
+// Loading component for suspense
+function SearchSectionLoader() {
+  return (
+    <div className="h-40 bg-gray-100 animate-pulse rounded-lg"></div>
+  );
+}
 
 const YACHT_DISPLAY_CONFIG = {
   limit: 6,
@@ -61,7 +69,7 @@ const Exclusive_Locations = {
 
 export default function Home() {
   const displayedYachts = yachts.slice(0, YACHT_DISPLAY_CONFIG.limit);
-  const displayedLocations = locationsData.slice(0, 6); // Pehli 6 locations
+  const displayedLocations = locationsData.slice(0, 6);
 
   const yachtGridClasses = `grid ${YACHT_DISPLAY_CONFIG.grid.base} ${YACHT_DISPLAY_CONFIG.grid.md} ${YACHT_DISPLAY_CONFIG.grid.lg} ${YACHT_DISPLAY_CONFIG.grid.xl} gap-8`;
   const locationGridClasses = `grid ${LOCATIONS_GRID_CONFIG.base} ${LOCATIONS_GRID_CONFIG.md} ${LOCATIONS_GRID_CONFIG.lg} ${LOCATIONS_GRID_CONFIG.gap}`;
@@ -89,7 +97,11 @@ export default function Home() {
         buttonLink={HERO_CONTENT.cta.buttonLink}
         showContact={HERO_CONTENT.showContact}
       />
-      <SearchHomeSection />
+      
+      {/* SearchHomeSection ko suspense mein wrap karo */}
+      <Suspense fallback={<SearchSectionLoader />}>
+        <SearchHomeSection />
+      </Suspense>
 
       <WhyHalaYachts />
 
