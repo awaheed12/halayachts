@@ -295,7 +295,10 @@ const SearchFilter = ({
   className = "",
   showClearAll = true,
   initialFilters = {},
-  showMobileFilters = true, // Naya prop - default true rakha hai
+  showMobileFilters = true,
+  // Naye props for location page
+  isLocationPage = false,
+  currentLocation = "",
 }) => {
   const searchParams = useSearchParams();
 
@@ -400,23 +403,57 @@ const SearchFilter = ({
     (value) => value !== "all" && (!Array.isArray(value) || value.length > 0)
   ).length;
 
+  // Location page ke liye custom options
+  const getLocationOptions = () => {
+    if (isLocationPage && currentLocation) {
+      // Sirf current location show karo
+      return [
+        { value: "current", label: currentLocation }
+      ];
+    }
+    return LOCATION_OPTIONS;
+  };
+
+  const locationOptionsToUse = getLocationOptions();
+
   // Desktop Filter Grid Component
   const DesktopFilterGrid = () => (
     <div className={FILTER_CONTAINER_STYLES.grid}>
-      {/* Location - Largest dropdown */}
+      {/* Location - Special handling for location page */}
       <div className="flex flex-col gap-1">
         <label className={FILTER_CONTAINER_STYLES.label}>Location</label>
-        <FilterDropdown
-          label="All Locations"
-          options={LOCATION_OPTIONS}
-          value={filters.location}
-          onChange={(value) => handleFilterChange("location", value)}
-          isSearchable={true}
-          widthClass={DROPDOWN_WIDTHS.location}
-          isOpen={openDropdown === "location"}
-          onToggle={() => handleDropdownToggle("location")}
-          onClose={handleDropdownClose}
-        />
+        {isLocationPage ? (
+          // Location page - locked dropdown
+          <div className="relative">
+            <button 
+              className={`${DROPDOWN_STYLES.button} bg-gray-100 cursor-not-allowed opacity-80`}
+              disabled
+            >
+              <span className={DROPDOWN_STYLES.buttonText}>
+                {currentLocation}
+              </span>
+              <FiChevronDown className="w-4 h-4 text-gray-400" />
+            </button>
+            <div className="absolute inset-0 bg-transparent cursor-not-allowed"></div>
+            {/* Tooltip style message */}
+            <div className="absolute -bottom-6 left-0 text-xs text-gray-500">
+              Location is fixed for this page
+            </div>
+          </div>
+        ) : (
+          // Normal page - working dropdown
+          <FilterDropdown
+            label="All Locations"
+            options={locationOptionsToUse}
+            value={filters.location}
+            onChange={(value) => handleFilterChange("location", value)}
+            isSearchable={true}
+            widthClass={DROPDOWN_WIDTHS.location}
+            isOpen={openDropdown === "location"}
+            onToggle={() => handleDropdownToggle("location")}
+            onClose={handleDropdownClose}
+          />
+        )}
       </div>
 
       {/* Duration - Medium dropdown */}
@@ -500,23 +537,36 @@ const SearchFilter = ({
   // Mobile Filter Grid Component
   const MobileFilterGrid = () => (
     <div className="space-y-4">
-      {/* Location - Largest dropdown */}
+      {/* Location - Special handling for location page */}
       <div className="flex flex-col gap-2">
-        <label className="text-base font-semibold text-gray-900">
-          Location
-        </label>
-        <FilterDropdown
-          label="All Locations"
-          options={LOCATION_OPTIONS}
-          value={tempFilters.location}
-          onChange={(value) => handleTempFilterChange("location", value)}
-          isSearchable={true}
-          widthClass="w-full"
-          isOpen={openDropdown === "location"}
-          onToggle={() => handleDropdownToggle("location")}
-          onClose={handleDropdownClose}
-          isMobile={true}
-        />
+        <label className="text-base font-semibold text-gray-900">Location</label>
+        {isLocationPage ? (
+          <div className="relative">
+            <button 
+              className={`${DROPDOWN_STYLES.button} bg-gray-100 cursor-not-allowed opacity-80 w-full`}
+              disabled
+            >
+              <span className={DROPDOWN_STYLES.buttonText}>
+                {currentLocation}
+              </span>
+              <FiChevronDown className="w-4 h-4 text-gray-400" />
+            </button>
+            <div className="absolute inset-0 bg-transparent cursor-not-allowed"></div>
+          </div>
+        ) : (
+          <FilterDropdown
+            label="All Locations"
+            options={locationOptionsToUse}
+            value={tempFilters.location}
+            onChange={(value) => handleTempFilterChange("location", value)}
+            isSearchable={true}
+            widthClass="w-full"
+            isOpen={openDropdown === "location"}
+            onToggle={() => handleDropdownToggle("location")}
+            onClose={handleDropdownClose}
+            isMobile={true}
+          />
+        )}
       </div>
 
       {/* Duration - Medium dropdown */}
