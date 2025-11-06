@@ -4,6 +4,7 @@ import Banner from "../../components/Banner";
 import YachtCard from "../../components/YachtCard";
 import locationsData from "../../../data/locations.json";
 import yachts from "../../../data/yachts.json";
+import Link from "next/link"; // <- YEH IMPORT ADD KARO
 
 export async function generateStaticParams() {
   return locationsData.map((location) => ({
@@ -11,9 +12,8 @@ export async function generateStaticParams() {
   }));
 }
 
-// OPTION 1: Async function banao
 export default async function LocationDetail({ params }) {
-  const { city } = await params; // Await the params
+  const { city } = await params;
 
   const location = locationsData.find((loc) => loc.id === city);
 
@@ -21,12 +21,10 @@ export default async function LocationDetail({ params }) {
     notFound();
   }
 
-  // CORRECTED: Yacht filtering logic
   const locationYachts = yachts.filter((yacht) => {
     const yachtLocation = yacht.location?.city;
     const currentLocation = location.title;
 
-    // Better matching - exact match ya partial match
     return (
       yachtLocation === currentLocation ||
       yachtLocation?.includes(location.title.split(",")[0]) ||
@@ -92,12 +90,13 @@ export default async function LocationDetail({ params }) {
                   <p className="text-gray-500 mb-6">
                     There are currently no yachts available in {location.title}.
                   </p>
-                  <a
+                  {/* YEH LINE CHANGE KARO - <a> se <Link> mein */}
+                  <Link
                     href="/location"
                     className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors"
                   >
                     Browse All Locations
-                  </a>
+                  </Link>
                 </div>
               </div>
             )}
