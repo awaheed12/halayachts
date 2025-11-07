@@ -14,7 +14,7 @@ import { GoPeople } from 'react-icons/go';
 
 const STYLES = {
   overlay: "fixed inset-0 z-50 flex justify-end ",
-  modal: "bg-white w-full max-w-md h-[95vh] sm:mt-4 sm:mr-4 rounded-xl shadow-2xl overflow-hidden",
+  modal: "bg-white w-full max-w-md sm:h-[95vh] h-full sm:mt-4 sm:mr-4 rounded-xl shadow-2xl overflow-hidden",
   header: "bg-white p-5 border-b border-gray-100 sticky top-0 z-10 flex flex-col gap-1",
   heading: "text-3xl font-light tracking-wider",
   subheading: "text-sm md:text-base lg:text-lg tracking-wider font-light",
