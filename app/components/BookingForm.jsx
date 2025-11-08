@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, ToastContainer } from 'react-toastify';
 import Calendar from 'react-calendar';
@@ -14,12 +14,12 @@ import { GoPeople } from 'react-icons/go';
 
 const STYLES = {
   overlay: "fixed inset-0 z-50 flex justify-end ",
-  modal: "bg-white w-full max-w-md sm:h-[95vh] h-full sm:mt-4 sm:mr-4 rounded-xl shadow-2xl overflow-hidden flex flex-col", // 🆕 flex flex-col added
+  modal: "bg-white w-full max-w-md sm:h-[95vh] h-full sm:mt-4 sm:mr-4 rounded-xl shadow-2xl overflow-hidden flex flex-col", 
   header: "bg-white p-5 border-b border-gray-100 sticky top-0 z-10 flex flex-col gap-1",
   heading: "text-3xl font-light tracking-wider",
   subheading: "text-sm md:text-base lg:text-lg tracking-wider font-light",
-  content: "p-5 flex-1 overflow-y-auto", // 🆕 flex-1 for scrollable area
-  buttonContainer: "p-5 border-t border-gray-200 bg-white sticky bottom-0", // 🆕 Fixed button container
+  content: "p-5 flex-1 overflow-y-auto", 
+  buttonContainer: "p-5 border-t border-gray-200 bg-white sticky bottom-0", 
   section: "mb-5",
   sectionTitle: "text-lg font-semibold text-gray-800 mb-4",
   radioGroup: "flex justify-between rounded-lg ",
@@ -30,7 +30,7 @@ const STYLES = {
   formGroupRow: "flex gap-4 mb-5",  
   formGroupItem: "flex-1 flex flex-col gap-2",  
   label: "flex gap-1 items-center text-base font-light tracking-wider",
-  input: "w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ",
+  input: "w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer",
   inputLocked: "w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 cursor-not-allowed text-gray-600 text-base font-light tracking-wider",
   timeSlotsGrid: "grid grid-cols-3 gap-3 max-h-48 overflow-y-auto p-3 border border-gray-200 rounded-lg bg-gray-50",
   timeSlot: "px-3 py-2 text-base font-light tracking-wider border border-gray-300 rounded-lg text-center cursor-pointer hover:bg-white hover:border-blue-300 transition-all duration-200 bg-white",
@@ -49,10 +49,14 @@ const STYLES = {
   checkboxSelected: "border-blue-500 bg-blue-50 shadow-md ",
   checkboxText: "flex flex-col items-center",
   checkboxDuration: "text-base font-light tracking-wider",
-  calendarContainer: "mt-2 border border-gray-200 rounded-lg overflow-hidden",
+  calendarContainer: "mt-2 border border-gray-200 rounded-lg overflow-hidden bg-white shadow-lg",
   calendar: "w-full border-0",
   calendarTile: "rounded-lg hover:bg-blue-100",
-  calendarActiveTile: "bg-blue-600 text-white hover:bg-blue-700"
+  calendarActiveTile: "bg-blue-600 text-white hover:bg-blue-700",
+  // 🆕 New styles for calendar inputs
+  dateInputContainer: "relative",
+  dateInput: "w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer bg-white",
+  calendarDropdown: "absolute top-full left-0 right-0 mt-1 z-20 bg-white border border-gray-200 rounded-lg shadow-xl"
 };
 
 const TIME_SLOTS = [
@@ -139,6 +143,16 @@ const calendarStyles = `
   }
 `;
 
+// 🆕 Date formatting function
+const formatDateForInput = (date) => {
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+};
+
 export default function BookingForm({
   isOpen,
   onClose,
@@ -157,16 +171,59 @@ export default function BookingForm({
     email: '',
     phone: '',
     message: '',
-    yachtTitle: charterData?.yachtTitle || ''
+    yachtTitle: charterData?.yachtTitle || '',
+    checkInDate: new Date(),
+    checkOutDate: new Date(new Date().setDate(new Date().getDate() + 1)),
+    numberOfNights: 1
   });
 
+  // 🆕 Calendar visibility states
+  const [showDateCalendar, setShowDateCalendar] = useState(false);
+  const [showCheckInCalendar, setShowCheckInCalendar] = useState(false);
+  const [showCheckOutCalendar, setShowCheckOutCalendar] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 🆕 Refs for click outside detection
+  const dateCalendarRef = useRef(null);
+  const checkInCalendarRef = useRef(null);
+  const checkOutCalendarRef = useRef(null);
 
   // Available durations charter data se
   const availableDurations = charterData?.durations || [];
 
   // Maximum passengers
   const maxPassengers = charterData?.maxPassengers || 10;
+
+  // 🆕 Click outside to close calendar
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dateCalendarRef.current && !dateCalendarRef.current.contains(event.target)) {
+        setShowDateCalendar(false);
+      }
+      if (checkInCalendarRef.current && !checkInCalendarRef.current.contains(event.target)) {
+        setShowCheckInCalendar(false);
+      }
+      if (checkOutCalendarRef.current && !checkOutCalendarRef.current.contains(event.target)) {
+        setShowCheckOutCalendar(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // 🆕 Calculate number of nights
+  useEffect(() => {
+    if (formData.charterType === 'multiday') {
+      const timeDiff = formData.checkOutDate.getTime() - formData.checkInDate.getTime();
+      const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      setFormData(prev => ({
+        ...prev,
+        numberOfNights: nights > 0 ? nights : 1
+      }));
+    }
+  }, [formData.checkInDate, formData.checkOutDate, formData.charterType]);
 
   // 🆕 Reset form when modal closes
   useEffect(() => {
@@ -184,9 +241,16 @@ export default function BookingForm({
           email: '',
           phone: '',
           message: '',
-          yachtTitle: charterData?.yachtTitle || ''
+          yachtTitle: charterData?.yachtTitle || '',
+          checkInDate: new Date(),
+          checkOutDate: new Date(new Date().setDate(new Date().getDate() + 1)),
+          numberOfNights: 1
         });
         setCurrentStep(1);
+        // 🆕 Reset calendar states
+        setShowDateCalendar(false);
+        setShowCheckInCalendar(false);
+        setShowCheckOutCalendar(false);
       }, 300);
 
       return () => clearTimeout(timer);
@@ -213,9 +277,31 @@ export default function BookingForm({
     }));
   };
 
+  // 🆕 Calendar handlers
+  const handleDateSelect = (date) => {
+    handleInputChange('date', date);
+    setShowDateCalendar(false);
+  };
+
+  const handleCheckInSelect = (date) => {
+    handleInputChange('checkInDate', date);
+    setShowCheckInCalendar(false);
+  };
+
+  const handleCheckOutSelect = (date) => {
+    handleInputChange('checkOutDate', date);
+    setShowCheckOutCalendar(false);
+  };
+
   const handleStep1Continue = () => {
-    if (formData.duration && formData.date && formData.time && formData.passengers) {
-      setCurrentStep(2);
+    if (formData.charterType === 'day') {
+      if (formData.duration && formData.date && formData.time && formData.passengers) {
+        setCurrentStep(2);
+      }
+    } else {
+      if (formData.checkInDate && formData.checkOutDate && formData.passengers) {
+        setCurrentStep(2);
+      }
     }
   };
 
@@ -234,7 +320,6 @@ export default function BookingForm({
       console.log('Booking Data:', bookingData);
       console.log('Yacht Title:', bookingData.yachtTitle);
 
-      // 🆕 Toastify Success Notification
       toast.success('🎉 Booking submitted successfully! We will contact you soon.', {
         position: "top-right",
         autoClose: 2000,
@@ -248,7 +333,6 @@ export default function BookingForm({
       onClose();
     } catch (error) {
       console.error('Booking failed:', error);
-      // 🆕 Toastify Error Notification
       toast.error('❌ Booking failed. Please try again.', {
         position: "top-right",
         autoClose: 2000,
@@ -263,22 +347,14 @@ export default function BookingForm({
     }
   };
 
-  const isStep1Valid = formData.duration && formData.date && formData.time && formData.passengers;
-  const isStep2Valid = formData.firstName && formData.lastName && formData.email && formData.phone;
+  const isStep1Valid = formData.charterType === 'day' 
+    ? formData.duration && formData.date && formData.time && formData.passengers
+    : formData.checkInDate && formData.checkOutDate && formData.passengers;
 
-  // Format date for display
-  const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  const isStep2Valid = formData.firstName && formData.lastName && formData.email && formData.phone;
 
   return (
     <>
-      {/* 🆕 Toast Container */}
       <ToastContainer
         position="top-right"
         autoClose={2000}
@@ -292,13 +368,11 @@ export default function BookingForm({
         theme="light"
       />
 
-      {/* 🆕 Calendar Styles */}
       <style jsx global>{calendarStyles}</style>
 
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Backdrop Overlay */}
             <motion.div
               className="fixed inset-0 bg-black z-50"
               variants={overlayVariants}
@@ -308,7 +382,6 @@ export default function BookingForm({
               onClick={onClose}
             />
 
-            {/* Modal */}
             <motion.div
               className={STYLES.overlay}
               variants={modalVariants}
@@ -320,22 +393,18 @@ export default function BookingForm({
                 className={STYLES.modal}
                 variants={contentVariants}
               >
-                {/* Header */}
                 <div className={STYLES.header}>
                   <h2 className={STYLES.heading}>Book Your Charter</h2>
                   <p className={STYLES.subheading}>Complete your booking in just a few steps</p>
                 </div>
 
-                {/* Scrollable Content Area */}
                 <div className={STYLES.content}>
-                  {/* Step 1: Charter Requirements */}
                   {currentStep === 1 && (
                     <motion.div
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      {/* Charter Type Radio Buttons */}
                       <div className={STYLES.section}>
                         <div className={STYLES.radioGroup}>
                           <label className={STYLES.radioLabel}>
@@ -363,7 +432,6 @@ export default function BookingForm({
                         </div>
                       </div>
 
-                      {/* Location Field */}
                       <div className={STYLES.formGroup}>
                         <label className={STYLES.label}><span><GrLocationPin /> </span> Location</label>
                         <input
@@ -374,74 +442,159 @@ export default function BookingForm({
                         />
                       </div>
 
-                      {/* 🆕 Duration Flex Group - Radio Buttons Removed */}
-                      <div className={STYLES.formGroup}>
-                        <label className={STYLES.label}><span><GiBackwardTime /> </span>  Select Duration</label>
-                        <div className={STYLES.checkboxGroup}>
-                          {availableDurations.map((duration, index) => (
-                            <motion.div
-                              key={index}
-                              className={`${STYLES.checkboxLabel} ${formData.duration === duration ? STYLES.checkboxSelected : ''
-                                }`}
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => handleInputChange('duration', duration)}
-                            >
-                              <div className={STYLES.checkboxText}>
-                                <div className={STYLES.checkboxDuration}>{duration}</div>
-                              </div>
-                            </motion.div>
-                          ))}
-                        </div>
-                      </div>
+                      {formData.charterType === 'day' ? (
+                        <>
+                          <div className={STYLES.formGroup}>
+                            <label className={STYLES.label}><span><GiBackwardTime /> </span> Select Duration</label>
+                            <div className={STYLES.checkboxGroup}>
+                              {availableDurations.map((duration, index) => (
+                                <motion.div
+                                  key={index}
+                                  className={`${STYLES.checkboxLabel} ${formData.duration === duration ? STYLES.checkboxSelected : ''}`}
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  onClick={() => handleInputChange('duration', duration)}
+                                >
+                                  <div className={STYLES.checkboxText}>
+                                    <div className={STYLES.checkboxDuration}>{duration}</div>
+                                  </div>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </div>
 
-                      {/* 🆕 React Calendar */}
-                      <div className={STYLES.formGroup}>
-                        <label className={STYLES.label}><span><CiCalendarDate /> </span>Select Date</label>
-                        <div className={STYLES.calendarContainer}>
-                          <Calendar
-                            onChange={(date) => handleInputChange('date', date)}
-                            value={formData.date}
-                            minDate={new Date()}
-                            className={STYLES.calendar}
-                            tileClassName={({ date, view }) =>
-                              view === 'month' && date.toDateString() === formData.date.toDateString()
-                                ? 'react-calendar__tile--active'
-                                : ''
-                            }
-                          />
-                        </div>
-                      </div>
+                          {/* 🆕 DATE INPUT WITH CLICKABLE CALENDAR */}
+                          <div className={STYLES.formGroup}>
+                            <label className={STYLES.label}><span><CiCalendarDate /> </span>Select Date</label>
+                            <div className={STYLES.dateInputContainer} ref={dateCalendarRef}>
+                              <input
+                                type="text"
+                                value={formatDateForInput(formData.date)}
+                                readOnly
+                                className={STYLES.dateInput}
+                                onClick={() => setShowDateCalendar(!showDateCalendar)}
+                                placeholder="Select date"
+                              />
+                              <AnimatePresence>
+                                {showDateCalendar && (
+                                  <motion.div
+                                    className={STYLES.calendarDropdown}
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                  >
+                                    <Calendar
+                                      onChange={handleDateSelect}
+                                      value={formData.date}
+                                      minDate={new Date()}
+                                      className={STYLES.calendar}
+                                    />
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          </div>
 
-                      {/* Time Slots */}
-                      <div className={STYLES.formGroup}>
-                        <label className={STYLES.label}><span><IoTimeOutline /></span> Preferred Time</label>
-                        <div className={STYLES.timeSlotsGrid}>
-                          {TIME_SLOTS.map((timeSlot) => (
-                            <motion.div
-                              key={timeSlot}
-                              className={formData.time === timeSlot ? STYLES.timeSlotSelected : STYLES.timeSlot}
-                              onClick={() => handleInputChange('time', timeSlot)}
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                            >
-                              {timeSlot}
-                            </motion.div>
-                          ))}
-                        </div>
-                      </div>
+                          <div className={STYLES.formGroup}>
+                            <label className={STYLES.label}><span><IoTimeOutline /></span> Preferred Time</label>
+                            <div className={STYLES.timeSlotsGrid}>
+                              {TIME_SLOTS.map((timeSlot) => (
+                                <motion.div
+                                  key={timeSlot}
+                                  className={formData.time === timeSlot ? STYLES.timeSlotSelected : STYLES.timeSlot}
+                                  onClick={() => handleInputChange('time', timeSlot)}
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
+                                  {timeSlot}
+                                </motion.div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {/* 🆕 CHECK-IN DATE INPUT WITH CALENDAR */}
+                          <div className={STYLES.formGroup}>
+                            <label className={STYLES.label}><span><CiCalendarDate /> </span>Check-in Date</label>
+                            <div className={STYLES.dateInputContainer} ref={checkInCalendarRef}>
+                              <input
+                                type="text"
+                                value={formatDateForInput(formData.checkInDate)}
+                                readOnly
+                                className={STYLES.dateInput}
+                                onClick={() => setShowCheckInCalendar(!showCheckInCalendar)}
+                                placeholder="Select check-in date"
+                              />
+                              <AnimatePresence>
+                                {showCheckInCalendar && (
+                                  <motion.div
+                                    className={STYLES.calendarDropdown}
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                  >
+                                    <Calendar
+                                      onChange={handleCheckInSelect}
+                                      value={formData.checkInDate}
+                                      minDate={new Date()}
+                                      className={STYLES.calendar}
+                                    />
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          </div>
 
-                      {/* Number of Passengers - SLIDER VERSION */}
+                          {/* 🆕 CHECK-OUT DATE INPUT WITH CALENDAR */}
+                          <div className={STYLES.formGroup}>
+                            <label className={STYLES.label}><span><CiCalendarDate /> </span>Check-out Date</label>
+                            <div className={STYLES.dateInputContainer} ref={checkOutCalendarRef}>
+                              <input
+                                type="text"
+                                value={formatDateForInput(formData.checkOutDate)}
+                                readOnly
+                                className={STYLES.dateInput}
+                                onClick={() => setShowCheckOutCalendar(!showCheckOutCalendar)}
+                                placeholder="Select check-out date"
+                              />
+                              <AnimatePresence>
+                                {showCheckOutCalendar && (
+                                  <motion.div
+                                    className={STYLES.calendarDropdown}
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                  >
+                                    <Calendar
+                                      onChange={handleCheckOutSelect}
+                                      value={formData.checkOutDate}
+                                      minDate={formData.checkInDate}
+                                      className={STYLES.calendar}
+                                    />
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          </div>
+
+                          <div className={STYLES.formGroup}>
+                            <label className={STYLES.label}><span><GiBackwardTime /> </span> Number of Nights</label>
+                            <div className={STYLES.inputLocked}>
+                              {formData.numberOfNights} {formData.numberOfNights === 1 ? 'night' : 'nights'}
+                            </div>
+                          </div>
+                        </>
+                      )}
+
                       <div className={STYLES.formGroup}>
                         <label className={STYLES.label}>
                           <span><GoPeople /> </span> Number of Passengers (Max: {maxPassengers})
                         </label>
-
                         <div className={STYLES.sliderContainer}>
                           <div className={STYLES.sliderValue}>
                             {formData.passengers} {formData.passengers === 1 ? 'person' : 'people'}
                           </div>
-
                           <input
                             type="range"
                             min="1"
@@ -450,7 +603,6 @@ export default function BookingForm({
                             onChange={(e) => handleInputChange('passengers', parseInt(e.target.value))}
                             className={STYLES.slider}
                           />
-
                           <div className={STYLES.sliderLabels}>
                             <span className="text-base font-light tracking-wider">1</span>
                             <span className="text-base font-light tracking-wider">{maxPassengers}</span>
@@ -460,7 +612,6 @@ export default function BookingForm({
                     </motion.div>
                   )}
 
-                  {/* Step 2: Personal Information - AMNE SAMNE LAYOUT */}
                   {currentStep === 2 && (
                     <motion.form
                       onSubmit={handleSubmit}
@@ -468,7 +619,6 @@ export default function BookingForm({
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      {/* 🆕 First Name & Last Name - Side by Side */}
                       <div className={STYLES.formGroupRow}>
                         <div className={STYLES.formGroupItem}>
                           <label className={STYLES.label}>First Name</label>
@@ -494,7 +644,6 @@ export default function BookingForm({
                         </div>
                       </div>
 
-                      {/* 🆕 Email & Phone - Side by Side */}
                       <div className={STYLES.formGroupRow}>
                         <div className={STYLES.formGroupItem}>
                           <label className={STYLES.label}>Email Address</label>
@@ -520,7 +669,6 @@ export default function BookingForm({
                         </div>
                       </div>
 
-                      {/* Additional Message */}
                       <div className={STYLES.formGroup}>
                         <label className={STYLES.label}>Additional Message (Optional)</label>
                         <textarea
@@ -535,7 +683,6 @@ export default function BookingForm({
                   )}
                 </div>
 
-                {/* 🆕 FIXED BUTTONS CONTAINER - Always Visible */}
                 <div className={STYLES.buttonContainer}>
                   <div className={STYLES.buttonGroup}>
                     {currentStep === 1 ? (
