@@ -14,11 +14,12 @@ import { GoPeople } from 'react-icons/go';
 
 const STYLES = {
   overlay: "fixed inset-0 z-50 flex justify-end ",
-  modal: "bg-white w-full max-w-md sm:h-[95vh] h-full sm:mt-4 sm:mr-4 rounded-xl shadow-2xl overflow-hidden",
+  modal: "bg-white w-full max-w-md sm:h-[95vh] h-full sm:mt-4 sm:mr-4 rounded-xl shadow-2xl overflow-hidden flex flex-col", // 🆕 flex flex-col added
   header: "bg-white p-5 border-b border-gray-100 sticky top-0 z-10 flex flex-col gap-1",
   heading: "text-3xl font-light tracking-wider",
   subheading: "text-sm md:text-base lg:text-lg tracking-wider font-light",
-  content: "p-5 max-h-[calc(95vh-140px)] overflow-y-auto",
+  content: "p-5 flex-1 overflow-y-auto", // 🆕 flex-1 for scrollable area
+  buttonContainer: "p-5 border-t border-gray-200 bg-white sticky bottom-0", // 🆕 Fixed button container
   section: "mb-5",
   sectionTitle: "text-lg font-semibold text-gray-800 mb-4",
   radioGroup: "flex justify-between rounded-lg ",
@@ -34,9 +35,8 @@ const STYLES = {
   timeSlotsGrid: "grid grid-cols-3 gap-3 max-h-48 overflow-y-auto p-3 border border-gray-200 rounded-lg bg-gray-50",
   timeSlot: "px-3 py-2 text-base font-light tracking-wider border border-gray-300 rounded-lg text-center cursor-pointer hover:bg-white hover:border-blue-300 transition-all duration-200 bg-white",
   timeSlotSelected: "px-3 py-2 text-base font-light tracking-wider border-2 border-[#c8a75c]-500 bg-[#c8a75c]-50 text-[#c8a75c] rounded-lg text-center cursor-pointer",
-  buttonGroup: "flex gap-4 mt-8",
-  // 
-  button: "flex-1 p-3 text-base p-3 lg:w-2xs w-full md:text-base font-light tracking-wider rounded cursor-pointer rounded-lg font-semibold transition-all duration-300 transform  active:scale-95",
+  buttonGroup: "flex gap-4",
+  button: "flex-1 p-3 text-base lg:w-2xs w-full md:text-base font-light tracking-wider rounded cursor-pointer rounded-lg font-semibold transition-all duration-300 transform active:scale-95",
   buttonPrimary: "bg-text-primary text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl",
   buttonSecondary: "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300",
   buttonDisabled: "bg-gray-300 text-gray-400 cursor-not-allowed transform-none hover:scale-100",
@@ -411,9 +411,6 @@ export default function BookingForm({
                             }
                           />
                         </div>
-                        {/* <div className="mt-3 text-sm text-gray-600 text-center">
-                          Selected: <span className="font-semibold">{formatDate(formData.date)}</span>
-                        </div> */}
                       </div>
 
                       {/* Time Slots */}
@@ -459,27 +456,6 @@ export default function BookingForm({
                             <span className="text-base font-light tracking-wider">{maxPassengers}</span>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Buttons */}
-                      <div className={STYLES.buttonGroup}>
-                        <motion.button
-                          onClick={onClose}
-                          className={`${STYLES.button} ${STYLES.buttonSecondary}`}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          Cancel
-                        </motion.button>
-                        <motion.button
-                          onClick={handleStep1Continue}
-                          disabled={!isStep1Valid}
-                          className={`${STYLES.button} ${STYLES.buttonPrimary} ${!isStep1Valid ? STYLES.buttonDisabled : ''}`}
-                          whileHover={isStep1Valid ? { scale: 1.02 } : {}}
-                          whileTap={isStep1Valid ? { scale: 0.98 } : {}}
-                        >
-                          Continue
-                        </motion.button>
                       </div>
                     </motion.div>
                   )}
@@ -555,9 +531,35 @@ export default function BookingForm({
                           placeholder="Any special requests or requirements..."
                         />
                       </div>
+                    </motion.form>
+                  )}
+                </div>
 
-                      {/* Buttons */}
-                      <div className={STYLES.buttonGroup}>
+                {/* 🆕 FIXED BUTTONS CONTAINER - Always Visible */}
+                <div className={STYLES.buttonContainer}>
+                  <div className={STYLES.buttonGroup}>
+                    {currentStep === 1 ? (
+                      <>
+                        <motion.button
+                          onClick={onClose}
+                          className={`${STYLES.button} ${STYLES.buttonSecondary}`}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          Cancel
+                        </motion.button>
+                        <motion.button
+                          onClick={handleStep1Continue}
+                          disabled={!isStep1Valid}
+                          className={`${STYLES.button} ${STYLES.buttonPrimary} ${!isStep1Valid ? STYLES.buttonDisabled : ''}`}
+                          whileHover={isStep1Valid ? { scale: 1.02 } : {}}
+                          whileTap={isStep1Valid ? { scale: 0.98 } : {}}
+                        >
+                          Continue
+                        </motion.button>
+                      </>
+                    ) : (
+                      <>
                         <motion.button
                           type="button"
                           onClick={() => setCurrentStep(1)}
@@ -573,6 +575,7 @@ export default function BookingForm({
                           className={`${STYLES.button} ${STYLES.buttonPrimary} ${(!isStep2Valid || isSubmitting) ? STYLES.buttonDisabled : ''}`}
                           whileHover={(!isStep2Valid || isSubmitting) ? {} : { scale: 1.02 }}
                           whileTap={(!isStep2Valid || isSubmitting) ? {} : { scale: 0.98 }}
+                          onClick={handleSubmit}
                         >
                           {isSubmitting ? (
                             <span className="flex items-center justify-center">
@@ -587,9 +590,9 @@ export default function BookingForm({
                             'Confirm Booking'
                           )}
                         </motion.button>
-                      </div>
-                    </motion.form>
-                  )}
+                      </>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             </motion.div>
