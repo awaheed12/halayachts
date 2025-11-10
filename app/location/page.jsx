@@ -96,8 +96,8 @@ export default function Location() {
   return (
     <>
       <Banner
-        mainHeading="Explore the World's Finest Waters"
-        description="Whether you seek vibrant nightlife, pristine nature, or quiet exclusivity, our destinations span continents and cultures. Glide along the French Riviera, explore the ancient coastlines of Greece. Every journey reveals a new perspective on luxury travel."
+        mainHeading="Explore the World’s Most Exquisite Waters"
+        description="Get ready to embark on a voyage that will fascinate and excite you to the core. Whether you are drawn to the pulsating nightlife, the serenity of pure nature, or the privacy of an exclusive escape, HalaYachts unlocks the door to the world’s most enchanting waters."
         showContact={false}
         height="medium"
         backgroundImage="/images/location.png"

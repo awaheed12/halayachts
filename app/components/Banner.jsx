@@ -13,7 +13,7 @@ const Banner = ({
     buttonText = "Book Now",
     buttonLink = "/booking",
     showContact = false,
-    email = "charter@halayachts.com",
+    email = "info@halayachts.com",
     phone = "+1 (555) 123-4567",
     backgroundImage = "/images/banner-bg.jpg", 
     height = "screen",
@@ -21,7 +21,7 @@ const Banner = ({
     textAlign = "center",
     customClass = "",
     overlayColor = "black",
-    overlayOpacity = 0, // Default ab 0 hai - koi overlay nahi
+    overlayOpacity = 0,  
 }) => {
 
     const heightOptions = {

@@ -4,8 +4,8 @@ import Image from 'next/image'
 
 const Escape = ({
   mainHeading = "Hala Yachts – Let's Plan Your Escape.",
-  description = "We are committed to delivering an exceptional yachting experience, combining world-class luxury, performance, and personalized service.",
-  paragraph = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+  description = "With a presence spanning Miami, Dallas, Dubai, and Karachi, HalaYachts redefines the meaning of luxury travel by delivering bespoke charters, world-class service, and full-service yachting solutions. ",
+  paragraph = "As a leading yacht charter service, we are passionate about crafting high-end voyages that give you the freedom to choose your ocean and your destination at your own pace. We are here to turn your travel dreams into a spectacular reality, whether you envision a trip to the exotic Arabian lands or a cruise along Miami’s turquoise coastline.",
   showButton = true,
   buttonText = "Contact Us",
   buttonLink = "/contact",

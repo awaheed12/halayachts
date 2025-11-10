@@ -2,21 +2,21 @@ import React from 'react'
 
 const ExceptionalService = ({
   backgroundImage = "/images/about_us.png",
-  subHeading = "Exceptional Service",
-  mainHeading = "Redefining the Luxury Yachting Experience",
-  description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+  subHeading = "Expertise You Can Trust",
+  mainHeading = "Premium Luxury Yachting Experience",
+  description = "Backed up by an expert crew, we have hands-on experience in planning and executing yacht journeys from beginning to end. Our in-depth knowledge of yachts and access to the most attractive yachts in the market ensure you get a yacht that perfectly matches your needs and expectations. ",
   features = [
     {
-      title: "Expertise You Can Trust",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et"
+      title: "Yacht Charter Services",
+      description: "We boast an extensive range of luxury vessels ranging from 40ft sailing yachts to 200ft+ superyachts."
     },
     {
-      title: "Expertise You Can Trust",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et"
+      title: "Yachts for Sale",
+      description: "Explore our premium fleet of luxury yachts for sale, from performance cruisers to motor sailers."
     },
     {
-      title: "Expertise You Can Trust",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et"
+      title: "Yachts for Management",
+      description: "Our superyacht management services strive for the highest standards in operational efficiency, security, and finances."
     }
   ],
   customClass = ""

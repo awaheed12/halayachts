@@ -8,7 +8,7 @@ const Footer = () => {
   // Constants for footer data
   const COMPANY_INFO = {
     name: "Hala Yachts",
-    description: "Hala Yachts delivers private, luxury charters worldwide. Every voyage is crafted with precision, privacy, and ease.",
+    description: "HalaYachts delivers bespoke, luxury yacht charters across the globe. Every voyage is uniquely crafted for those who seek extraordinary experiences, not just travel.",
     email: "charter@halayachts.com",
     phone: "+1 (555) 987-6543",
     address: "123 Oceanview Drive Miami, FL 33139, USA",
