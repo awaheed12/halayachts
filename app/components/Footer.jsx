@@ -37,8 +37,8 @@ const Footer = () => {
   ];
 
   const SOCIAL_LINKS = [
-    { icon: <FaFacebookF size={20} />, href: "#" },
-    { icon: <FaInstagram size={20} />, href: "#" },
+    { icon: <FaFacebookF size={20} />, href: "https://www.facebook.com/halayachts/?_rdr" },
+    { icon: <FaInstagram size={20} />, href: "https://www.instagram.com/halayachts/?igsh=MTVtcThpbzlub3duZQ%3D%3D#" },
     { icon: <FaLinkedinIn size={20} />, href: "#" },
     { icon: <FaYoutube size={20} />, href: "#" }
   ];
