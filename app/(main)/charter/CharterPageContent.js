@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useRef, useMemo, useEffect } from 'react';
-import Banner from "../components/Banner";
-import yachts from '../../data/yachts.json';
-import YachtCard from "../components/YachtCard";
-import SearchFilter from "../components/SearchFilter";
+import Banner from "../../components/Banner";
+import yachts from '../../../data/yachts.json';
+import YachtCard from "../../components/YachtCard";
+import SearchFilter from "../../components/SearchFilter";
 import { GoArrowRight, GoArrowLeft, GoArrowUpRight } from "react-icons/go";
 import { useSearchParams } from 'next/navigation';
-import PerfectYachtBanner from '../components/PerfectYachtBanner';
+import PerfectYachtBanner from '../../components/PerfectYachtBanner';
 import Link from 'next/link';
-import LocationCard from '../components/LocationCard';
-import locationsData from "../../data/locations.json";
+import LocationCard from '../../components/LocationCard';
+import locationsData from "../../../data/locations.json";
 
 // Pagination Component
 const Pagination = ({

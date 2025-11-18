@@ -1,14 +1,14 @@
 import { Suspense } from 'react';
-import Banner from "./components/Banner";
-import Community from "./components/community";
-import WhyHalaYachts from "./components/WhyHalaYachts";
-import YachtCard from "./components/YachtCard";
-import yachts from "../data/yachts.json";
-import locationsData from "../data/locations.json";
+import Banner from "../components/Banner";
+import Community from "../components/community";
+import WhyHalaYachts from "../components/WhyHalaYachts";
+import YachtCard from "../components/YachtCard";
+import yachts from "../../data/yachts.json";
+import locationsData from "../../data/locations.json";
 import { GoArrowUpRight } from "react-icons/go";
 import Link from "next/link";
-import SearchHomeSection from "./components/SearchHomeSection";
-import LocationCard from "./components/LocationCard";
+import SearchHomeSection from "../components/SearchHomeSection";
+import LocationCard from "../components/LocationCard";
 
 // Loading component for suspense
 function SearchSectionLoader() {

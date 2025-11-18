@@ -2,12 +2,12 @@
 "use client";
 
 import { notFound } from "next/navigation";
-import Banner from "../../components/Banner";
-import YachtCard from "../../components/YachtCard";
-import locationsData from "../../../data/locations.json";
-import yachts from "../../../data/yachts.json";
+import Banner from "../../../components/Banner";
+import YachtCard from "../../../components/YachtCard";
+import locationsData from "../../../../data/locations.json";
+import yachts from "../../../../data/yachts.json";
 import Link from "next/link";
-import SearchFilter from "../../components/SearchFilter";
+import SearchFilter from "../../../components/SearchFilter";
 import { useParams } from "next/navigation";
 import { useState, useMemo } from "react";
 

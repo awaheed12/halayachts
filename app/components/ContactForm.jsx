@@ -1,9 +1,9 @@
 'use client';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiPhone, FiMail, FiSend, FiUser, FiMessageSquare, FiArrowRight } from 'react-icons/fi';
-import { FaWhatsapp } from 'react-icons/fa';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Custom hook for scroll lock
@@ -67,25 +67,25 @@ const validateField = (name, value) => {
   }
 };
 
-// Country codes data
+// Country codes data (code only, no flags or country names for maximum compatibility)
 const countryCodes = [
-  { code: '+1', name: 'US', flag: '🇺🇸' },
-  { code: '+44', name: 'UK', flag: '🇬🇧' },
-  { code: '+91', name: 'India', flag: '🇮🇳' },
-  { code: '+971', name: 'UAE', flag: '🇦🇪' },
-  { code: '+966', name: 'KSA', flag: '🇸🇦' },
-  { code: '+965', name: 'Kuwait', flag: '🇰🇼' },
-  { code: '+973', name: 'Bahrain', flag: '🇧🇭' },
-  { code: '+974', name: 'Qatar', flag: '🇶🇦' },
-  { code: '+968', name: 'Oman', flag: '🇴🇲' },
-  { code: '+20', name: 'Egypt', flag: '🇪🇬' },
-  { code: '+33', name: 'France', flag: '🇫🇷' },
-  { code: '+49', name: 'Germany', flag: '🇩🇪' },
-  { code: '+39', name: 'Italy', flag: '🇮🇹' },
-  { code: '+34', name: 'Spain', flag: '🇪🇸' },
-  { code: '+61', name: 'Australia', flag: '🇦🇺' },
-  { code: '+81', name: 'Japan', flag: '🇯🇵' },
-  { code: '+86', name: 'China', flag: '🇨🇳' },
+  '+1',
+  '+44',
+  '+91',
+  '+971',
+  '+966',
+  '+965',
+  '+973',
+  '+974',
+  '+968',
+  '+20',
+  '+33',
+  '+49',
+  '+39',
+  '+34',
+  '+61',
+  '+81',
+  '+86',
 ];
 
 // Animation variants
@@ -234,8 +234,20 @@ const ContactForm = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !data?.success) {
+        const message = data?.error || 'Failed to send message. Please try again.';
+        throw new Error(message);
+      }
 
       toast.success('Message sent successfully! We will get back to you soon.');
 
@@ -243,10 +255,9 @@ const ContactForm = ({ isOpen, onClose }) => {
       setTimeout(() => {
         handleClose();
       }, 1000);
-
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error('Failed to send message. Please try again.');
+      toast.error(error.message || 'Failed to send message. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -281,16 +292,6 @@ const ContactForm = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* <ToastContainer
-        position="top-right"
-        autoClose={500}
-        hideProgressBar={true}
-        closeOnClick
-        pauseOnHover
-        theme="light"
-        style={{ zIndex: 9999 }}
-      /> */}
-
       <AnimatePresence onExitComplete={() => setIsClosing(false)}>
         {(isOpen || isClosing) && (
           <>
@@ -366,9 +367,9 @@ const ContactForm = ({ isOpen, onClose }) => {
                         onBlur={handleBlur}
                         className="w-28 px-3 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 bg-white text-black"
                       >
-                        {countryCodes.map((country) => (
-                          <option key={country.code} value={country.code}>
-                            {country.flag} {country.code} ({country.name})
+                        {countryCodes.map((code) => (
+                          <option key={code} value={code}>
+                            {code}
                           </option>
                         ))}
                       </select>
@@ -419,7 +420,7 @@ const ContactForm = ({ isOpen, onClose }) => {
                 </form>
 
                 {/* Contact Info - Beautiful Animated Cards */}
-                <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="mb-8 hidden 2xl:grid grid-cols-1 md:grid-cols-2 gap-4  ">
                   {/* Phone Card */}
                   <motion.a
                     href="tel:+15551234567"
@@ -488,7 +489,7 @@ const ContactForm = ({ isOpen, onClose }) => {
 // Reusable Form Field Component
 const FormField = ({ type, name, label, placeholder, icon: Icon, value, error, onChange, onBlur }) => (
   <div>
-    <label className="blocktext-base md:text-lg leading-relaxed tracking-wider font-light text-white mb-2">
+    <label className="block text-base md:text-lg leading-relaxed tracking-wider font-light text-white mb-2">
       {label}
     </label>
     <div className="relative">

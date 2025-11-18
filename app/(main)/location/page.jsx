@@ -1,11 +1,11 @@
 import Link from "next/link";
-import Banner from "../components/Banner";
+import Banner from "../../components/Banner";
 import { GoArrowUpRight } from "react-icons/go";
-import YachtCard from "../components/YachtCard";
-import yachts from "../../data/yachts.json";
-import PerfectYachtBanner from "../components/PerfectYachtBanner";
-import LocationCard from "../components/LocationCard";
-import locationsData from "../../data/locations.json";
+import YachtCard from "../../components/YachtCard";
+import yachts from "../../../data/yachts.json";
+import PerfectYachtBanner from "../../components/PerfectYachtBanner";
+import LocationCard from "../../components/LocationCard";
+import locationsData from "../../../data/locations.json";
 
 const YACHT_DISPLAY_CONFIG = {
   limit: 6,

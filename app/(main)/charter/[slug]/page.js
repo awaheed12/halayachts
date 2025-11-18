@@ -1,11 +1,11 @@
 // app/charter/[slug]/page.js
 "use client";
 import { useState, useEffect } from "react";
-import yachts from "../../../data/yachts.json";
-import Banner from "../../components/Banner";
-import ImageLightbox from "../../components/ImageLightbox";
-import LoadingSpinner from "../../components/LoadingSpinner";
-import YachtError from "../../components/YachtError";
+import yachts from "../../../../data/yachts.json";
+import Banner from "../../../components/Banner";
+import ImageLightbox from "../../../components/ImageLightbox";
+import LoadingSpinner from "../../../components/LoadingSpinner";
+import YachtError from "../../../components/YachtError";
 import Amenities from "@/app/components/Amenities";
 import SpecificationsSection from "@/app/components/Specifications";
 import PerfectYachtBanner from "@/app/components/PerfectYachtBanner";
