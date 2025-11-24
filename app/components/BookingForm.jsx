@@ -53,7 +53,6 @@ const STYLES = {
   calendar: "w-full border-0",
   calendarTile: "rounded-lg hover:bg-blue-100",
   calendarActiveTile: "bg-blue-600 text-white hover:bg-blue-700",
-  // 🆕 New styles for calendar inputs
   dateInputContainer: "relative",
   dateInput: "w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer bg-white",
   calendarDropdown: "absolute top-full left-0 right-0 mt-1 z-20 bg-white border border-gray-200 rounded-lg shadow-xl"
@@ -68,7 +67,6 @@ const TIME_SLOTS = [
   "9:00 PM", "9:30 PM", "10:00 PM"
 ];
 
-// Animation variants
 const overlayVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 0.9 }
@@ -108,7 +106,6 @@ const contentVariants = {
   }
 };
 
-// Custom Calendar Styles
 const calendarStyles = `
   .react-calendar {
     border: none !important;
@@ -143,7 +140,6 @@ const calendarStyles = `
   }
 `;
 
-// 🆕 Date formatting function
 const formatDateForInput = (date) => {
   return date.toLocaleDateString('en-US', {
     weekday: 'short',
@@ -177,25 +173,20 @@ export default function BookingForm({
     numberOfNights: 1
   });
 
-  // 🆕 Calendar visibility states
   const [showDateCalendar, setShowDateCalendar] = useState(false);
   const [showCheckInCalendar, setShowCheckInCalendar] = useState(false);
   const [showCheckOutCalendar, setShowCheckOutCalendar] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🆕 Refs for click outside detection
   const dateCalendarRef = useRef(null);
   const checkInCalendarRef = useRef(null);
   const checkOutCalendarRef = useRef(null);
 
-  // Available durations charter data se
   const availableDurations = charterData?.durations || [];
 
-  // Maximum passengers
   const maxPassengers = charterData?.maxPassengers || 10;
 
-  // 🆕 Click outside to close calendar
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dateCalendarRef.current && !dateCalendarRef.current.contains(event.target)) {
@@ -213,7 +204,6 @@ export default function BookingForm({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // 🆕 Calculate number of nights
   useEffect(() => {
     if (formData.charterType === 'multiday') {
       const timeDiff = formData.checkOutDate.getTime() - formData.checkInDate.getTime();
@@ -225,7 +215,6 @@ export default function BookingForm({
     }
   }, [formData.checkInDate, formData.checkOutDate, formData.charterType]);
 
-  // 🆕 Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
       const timer = setTimeout(() => {
@@ -247,7 +236,6 @@ export default function BookingForm({
           numberOfNights: 1
         });
         setCurrentStep(1);
-        // 🆕 Reset calendar states
         setShowDateCalendar(false);
         setShowCheckInCalendar(false);
         setShowCheckOutCalendar(false);
@@ -257,7 +245,6 @@ export default function BookingForm({
     }
   }, [isOpen, charterData]);
 
-  // Disable body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -277,7 +264,6 @@ export default function BookingForm({
     }));
   };
 
-  // 🆕 Calendar handlers
   const handleDateSelect = (date) => {
     handleInputChange('date', date);
     setShowDateCalendar(false);
@@ -310,37 +296,58 @@ export default function BookingForm({
     setIsSubmitting(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
+      // Prepare booking data for MongoDB
       const bookingData = {
         ...formData,
-        yachtTitle: charterData?.yachtTitle || 'Unknown Yacht'
+        yachtTitle: charterData?.yachtTitle || 'Unknown Yacht',
+        location: charterData?.location || '',
+        // Convert dates to ISO strings for MongoDB
+        date: formData.date instanceof Date ? formData.date.toISOString() : formData.date,
+        checkInDate: formData.checkInDate instanceof Date ? formData.checkInDate.toISOString() : formData.checkInDate,
+        checkOutDate: formData.checkOutDate instanceof Date ? formData.checkOutDate.toISOString() : formData.checkOutDate,
       };
 
-      console.log('Booking Data:', bookingData);
-      console.log('Yacht Title:', bookingData.yachtTitle);
-
-      toast.success('🎉 Booking submitted successfully! We will contact you soon.', {
-        position: "top-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "light",
+      // Send to backend API
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData),
       });
 
-      onClose();
-    } catch (error) {
-      console.error('Booking failed:', error);
-      toast.error('❌ Booking failed. Please try again.', {
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Booking submission failed');
+      }
+
+      console.log('Booking submitted successfully:', result);
+
+      toast.success('Booking submitted successfully! We will contact you soon.', {
         position: "top-right",
-        autoClose: 2000,
+        autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        theme: "light",
+        theme: "dark",
+      });
+
+      setTimeout(() => {
+        onClose();
+      }, 2000);
+
+    } catch (error) {
+      console.error('Booking failed:', error);
+      toast.error(error.message || 'Booking failed. Please try again.', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "dark",
       });
     } finally {
       setIsSubmitting(false);
@@ -357,7 +364,7 @@ export default function BookingForm({
     <>
       <ToastContainer
         position="top-right"
-        autoClose={2000}
+        autoClose={5000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -463,7 +470,6 @@ export default function BookingForm({
                             </div>
                           </div>
 
-                          {/* 🆕 DATE INPUT WITH CLICKABLE CALENDAR */}
                           <div className={STYLES.formGroup}>
                             <label className={STYLES.label}><span><CiCalendarDate /> </span>Select Date</label>
                             <div className={STYLES.dateInputContainer} ref={dateCalendarRef}>
@@ -514,7 +520,6 @@ export default function BookingForm({
                         </>
                       ) : (
                         <>
-                          {/* 🆕 CHECK-IN DATE INPUT WITH CALENDAR */}
                           <div className={STYLES.formGroup}>
                             <label className={STYLES.label}><span><CiCalendarDate /> </span>Check-in Date</label>
                             <div className={STYLES.dateInputContainer} ref={checkInCalendarRef}>
@@ -546,7 +551,6 @@ export default function BookingForm({
                             </div>
                           </div>
 
-                          {/* 🆕 CHECK-OUT DATE INPUT WITH CALENDAR */}
                           <div className={STYLES.formGroup}>
                             <label className={STYLES.label}><span><CiCalendarDate /> </span>Check-out Date</label>
                             <div className={STYLES.dateInputContainer} ref={checkOutCalendarRef}>

@@ -1,7 +1,6 @@
 // app/charter/[slug]/page.js
 "use client";
 import { useState, useEffect } from "react";
-import yachts from "../../../../data/yachts.json";
 import Banner from "../../../components/Banner";
 import ImageLightbox from "../../../components/ImageLightbox";
 import LoadingSpinner from "../../../components/LoadingSpinner";
@@ -13,6 +12,25 @@ import LocationMap from "@/app/components/LocationMap";
 import FeaturesSection from "@/app/components/FeaturesSection";
 import GallerySection from "@/app/components/GallerySection";
 
+// Server component that fetches yacht by slug from database
+async function getYachtBySlug(slug) {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/yachts/${slug}`, {
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch yacht');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching yacht:', error);
+    return null;
+  }
+}
+
 export default function YachtDetailPage({ params }) {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -23,20 +41,27 @@ export default function YachtDetailPage({ params }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { slug } = await params;
-      setSlug(slug);
-      const foundYacht = yachts.find((y) => y.slug === slug);
-      setYacht(foundYacht);
+      try {
+        const { slug } = await params;
+        setSlug(slug);
+        
+        // Database se yacht fetch karo
+        const foundYacht = await getYachtBySlug(slug);
+        setYacht(foundYacht);
 
-      if (foundYacht) {
-        const imagesArray = [
-          foundYacht.image,
-          ...(foundYacht.images?.map((img) => img.original_url) || []),
-        ];
-        setAllImages(imagesArray);
+        if (foundYacht) {
+          const imagesArray = [
+            foundYacht.image,
+            ...(foundYacht.images?.map((img) => img.original_url) || []),
+          ];
+          setAllImages(imagesArray);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching yacht data:', error);
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     fetchData();
@@ -84,7 +109,6 @@ export default function YachtDetailPage({ params }) {
         overlayOpacity={0.6}
       />
 
-      {/* FeaturesSection with Booking Feature */}
       <FeaturesSection
         featuresInfo={yacht.features_and_availablity_info}
         prices={yacht.prices}
@@ -93,6 +117,7 @@ export default function YachtDetailPage({ params }) {
         charterDurations={charterData.charterDurations}
         maxPassengers={charterData.maxPassengers}
         title={yacht.title}
+        broker={yacht.broker}
       />
 
       <GallerySection

@@ -234,7 +234,7 @@ export default function SubscribersPage() {
 
   // UI Components as separate variables (not inside render)
   const Header = () => (
-    <header>
+    <header className='mb-10'>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <button

@@ -2,7 +2,6 @@
 
 import { useState, useRef, useMemo, useEffect } from 'react';
 import Banner from "../../components/Banner";
-import yachts from '../../../data/yachts.json';
 import YachtCard from "../../components/YachtCard";
 import SearchFilter from "../../components/SearchFilter";
 import { GoArrowRight, GoArrowLeft, GoArrowUpRight } from "react-icons/go";
@@ -10,7 +9,148 @@ import { useSearchParams } from 'next/navigation';
 import PerfectYachtBanner from '../../components/PerfectYachtBanner';
 import Link from 'next/link';
 import LocationCard from '../../components/LocationCard';
-import locationsData from "../../../data/locations.json";
+
+// Server component that fetches yachts from database
+async function getYachts() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/yachts`, { 
+      cache: 'no-store'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch yachts');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching yachts:', error);
+    return [];
+  }
+}
+
+// Server component that fetches locations from database
+async function getLocations(limit = 6) {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/locations`, { 
+      cache: 'no-store'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch locations');
+    }
+    
+    const allLocations = await response.json();
+    return allLocations.slice(0, limit);
+  } catch (error) {
+    console.error('Error fetching locations:', error);
+    return [];
+  }
+}
+
+// Loading component for yachts
+function YachtsLoader() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="bg-gray-200 h-96 rounded-lg animate-pulse"></div>
+      ))}
+    </div>
+  );
+}
+
+// Loading component for locations
+function LocationsLoader() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="bg-gray-200 h-64 rounded-lg animate-pulse"></div>
+      ))}
+    </div>
+  );
+}
+
+// Locations Section as a separate component
+function LocationsSection({ locationsData, yachtsData }) {
+  const LOCATIONS_GRID_CONFIG = {
+    base: "grid-cols-1",
+    md: "md:grid-cols-2", 
+    lg: "lg:grid-cols-3", 
+    gap: "gap-8"
+  };
+
+  const Exclusive_Locations = {
+    title: "Exclusive Locations",
+    description: "Sail to the world&apos;s most breathtaking destinations, surrounded by the comfort and seclusion of your private yacht. Where every horizon is yours to explore in complete comfort.",
+    viewMore: {
+      text: "View more",
+      link: "/location",
+    },
+  };
+
+  const locationGridClasses = `grid ${LOCATIONS_GRID_CONFIG.base} ${LOCATIONS_GRID_CONFIG.md} ${LOCATIONS_GRID_CONFIG.lg} ${LOCATIONS_GRID_CONFIG.gap}`;
+
+  // Dynamic count calculate karo locations ke liye
+  const locationsWithCount = locationsData.map((location) => {
+    const yachtsCount = yachtsData.filter(
+      (yacht) => yacht.location?.city === location.title
+    ).length;
+
+    return {
+      ...location,
+      yachtsCount,
+    };
+  });
+
+  return (
+    <section className="lg:py-24 py-8">
+      <div className="max-w-7xl mx-auto px-5 flex flex-col gap-10">
+        <div className="flex flex-col lg:flex-row lg:justify-between gap-5 sm:gap-4">
+          <div className="flex flex-col gap-5 flex-1">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-[65px] font-light tracking-wide mb-4 lg:mb-6">
+              {Exclusive_Locations.title}
+            </h1>
+            <p className="text-base md:text-lg lg:text-xl xl:max-w-5xl tracking-wider font-light text-gray-700">
+              {Exclusive_Locations.description}
+            </p>
+          </div>
+
+          <Link
+            href={Exclusive_Locations.viewMore.link}
+            className="group flex items-center gap-2 text-primary hover:text-primary/80 transition-colors duration-200 lg:self-center"
+          >
+            <span className="text-base md:text-lg lg:text-xl font-medium">
+              {Exclusive_Locations.viewMore.text}
+            </span>
+            <GoArrowUpRight className="w-5 h-5 md:w-6 md:h-6 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </Link>
+        </div>
+
+        <div className="border-t border-gray-300" aria-hidden="true" />
+
+        {/* 6 Locations Grid */}
+        <div className={locationGridClasses}>
+          {locationsWithCount.length > 0 ? (
+            locationsWithCount.map((location) => (
+              <LocationCard
+                key={location.id}
+                location={location}
+                yachtsCount={location.yachtsCount}
+              />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-500 text-lg">
+                No locations available at the moment.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 // Pagination Component
 const Pagination = ({
@@ -103,26 +243,8 @@ const Pagination = ({
   );
 };
 
-// Grid configurations
-const LOCATIONS_GRID_CONFIG = {
-  base: "grid-cols-1",
-  md: "md:grid-cols-2", 
-  lg: "lg:grid-cols-3", 
-  gap: "gap-8"
-};
-
-const Exclusive_Locations = {
-  title: "Exclusive Locations",
-  description:
-    "Sail to the world's most breathtaking destinations, surrounded by the comfort and seclusion of your private yacht. Where every horizon is yours to explore in complete comfort.",
-  viewMore: {
-    text: "View more",
-    link: "/location",
-  },
-};
-
 // Main CharterPage Component
-export default function CharterPageContent() {
+function CharterPageContent() {
   const searchParams = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
@@ -133,6 +255,10 @@ export default function CharterPageContent() {
     amenities: 'all',
     passengers: 'all'
   });
+  const [locationsData, setLocationsData] = useState([]);
+  const [yachtsData, setYachtsData] = useState([]);
+  const [loadingLocations, setLoadingLocations] = useState(true);
+  const [loadingYachts, setLoadingYachts] = useState(true);
 
   const itemsPerPage = 12;
   const yachtGridRef = useRef(null);
@@ -157,9 +283,43 @@ export default function CharterPageContent() {
     setFilters(urlFilters);
   }, [searchParams]);
 
+  // Fetch yachts from database
+  useEffect(() => {
+    async function fetchYachts() {
+      try {
+        setLoadingYachts(true);
+        const data = await getYachts();
+        setYachtsData(data);
+      } catch (error) {
+        console.error('Error fetching yachts:', error);
+        setYachtsData([]);
+      } finally {
+        setLoadingYachts(false);
+      }
+    }
+    fetchYachts();
+  }, []);
+
+  // Fetch locations from database
+  useEffect(() => {
+    async function fetchLocations() {
+      try {
+        setLoadingLocations(true);
+        const data = await getLocations(6);
+        setLocationsData(data);
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+        setLocationsData([]);
+      } finally {
+        setLoadingLocations(false);
+      }
+    }
+    fetchLocations();
+  }, []);
+
   // Filter logic - Improved with better matching
   const filteredYachts = useMemo(() => {
-    return yachts.filter(yacht => {
+    return yachtsData.filter(yacht => {
       // Location filter - Improved matching
       if (filters.location !== 'all') {
         const yachtLocation = yacht.location?.city?.toLowerCase() || '';
@@ -227,27 +387,11 @@ export default function CharterPageContent() {
 
       return true;
     });
-  }, [filters]);
+  }, [filters, yachtsData]);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentYachts = filteredYachts.slice(startIndex, endIndex);
-
-  // Locations data for the section
-  const displayedLocations = locationsData.slice(0, 6); // Pehli 6 locations
-  const locationGridClasses = `grid ${LOCATIONS_GRID_CONFIG.base} ${LOCATIONS_GRID_CONFIG.md} ${LOCATIONS_GRID_CONFIG.lg} ${LOCATIONS_GRID_CONFIG.gap}`;
-
-  // Dynamic count calculate karo locations ke liye
-  const locationsWithCount = displayedLocations.map((location) => {
-    const yachtsCount = yachts.filter(
-      (yacht) => yacht.location?.city === location.title
-    ).length;
-
-    return {
-      ...location,
-      yachtsCount,
-    };
-  });
 
   const handlePageChange = (page) => {
     const currentScrollY = window.scrollY;
@@ -284,9 +428,9 @@ export default function CharterPageContent() {
     setCurrentPage(1); // Reset to first page when filters change
   };
 
-  const showNoYachtsMessage = filteredYachts.length === 0;
-  const showYachtGrid = !showNoYachtsMessage && currentYachts.length > 0;
-  const showPagination = !showNoYachtsMessage && filteredYachts.length > itemsPerPage;
+  const showNoYachtsMessage = filteredYachts.length === 0 && !loadingYachts;
+  const showYachtGrid = !showNoYachtsMessage && currentYachts.length > 0 && !loadingYachts;
+  const showPagination = !showNoYachtsMessage && filteredYachts.length > itemsPerPage && !loadingYachts;
 
   // Show results count
   const resultsCount = filteredYachts.length;
@@ -303,7 +447,7 @@ export default function CharterPageContent() {
 
       <section ref={yachtGridRef} className="lg:py-24 py-8">
         <div className="max-w-7xl mx-auto px-5 flex flex-col gap-10">
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-5 ">
             <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-[65px] font-light tracking-wide">
               Find Your Perfect Yacht
             </h1>
@@ -322,7 +466,7 @@ export default function CharterPageContent() {
           />
 
           {/* Results Count */}
-          {!showNoYachtsMessage && (
+          {!loadingYachts && !showNoYachtsMessage && (
             <div className="text-base md:text-lg lg:text-xl tracking-wider font-light">
               <span className="font-medium">{resultsCount}</span> Yachts Found 
             </div>
@@ -330,7 +474,10 @@ export default function CharterPageContent() {
 
           <div className="border-t border-gray-300"></div>
 
-          {showYachtGrid && (
+          {/* Yachts Loading State */}
+          {loadingYachts ? (
+            <YachtsLoader />
+          ) : showYachtGrid ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
                 {currentYachts.map(yacht => (
@@ -347,17 +494,17 @@ export default function CharterPageContent() {
                 />
               )}
             </>
-          )}
-
-          {showNoYachtsMessage && (
-            <div className="flex flex-col gap-5 items-center justify-center text-center py-12">
-              <p className="text-2xl md:text-4xl lg:text-5xl font-light tracking-wide text-gray-600">
-                No yachts found matching your criteria.
-              </p>
-              <p className="text-base md:text-lg lg:text-xl max-w-2xl tracking-wider font-light text-gray-500">
-                Try adjusting your filters to see more results.
-              </p>
-            </div>
+          ) : (
+            showNoYachtsMessage && (
+              <div className="flex flex-col gap-5 items-center justify-center text-center py-12">
+                <p className="text-2xl md:text-4xl lg:text-5xl font-light tracking-wide text-gray-600">
+                  No yachts found matching your criteria.
+                </p>
+                <p className="text-base md:text-lg lg:text-xl max-w-2xl tracking-wider font-light text-gray-500">
+                  Try adjusting your filters to see more results.
+                </p>
+              </div>
+            )
           )}
         </div>
       </section>
@@ -369,43 +516,37 @@ export default function CharterPageContent() {
         buttonLink="/location"
       />
 
-      <section className="lg:py-24 py-8">
-        <div className="max-w-7xl mx-auto px-5 flex flex-col gap-10">
-          <div className="flex flex-col lg:flex-row lg:justify-between gap-5 sm:gap-4">
-            <div className="flex flex-col gap-5 flex-1">
-              <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-[65px] font-light tracking-wide mb-4 lg:mb-6">
-                {Exclusive_Locations.title}
-              </h1>
-              <p className="text-base md:text-lg lg:text-xl xl:max-w-5xl tracking-wider font-light text-gray-700">
-                {Exclusive_Locations.description}
-              </p>
+      {/* Locations Section */}
+      {loadingLocations ? (
+        <section className="lg:py-24 py-8">
+          <div className="max-w-7xl mx-auto px-5 flex flex-col gap-10">
+            <div className="flex flex-col lg:flex-row lg:justify-between gap-5 sm:gap-4">
+              <div className="flex flex-col gap-5 flex-1">
+                <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-[65px] font-light tracking-wide mb-4 lg:mb-6">
+                  Exclusive Locations
+                </h1>
+                <p className="text-base md:text-lg lg:text-xl xl:max-w-5xl tracking-wider font-light text-gray-700">
+                  Sail to the world&apos;s most breathtaking destinations, surrounded by the comfort and seclusion of your private yacht. Where every horizon is yours to explore in complete comfort.
+                </p>
+              </div>
+              <div className="lg:self-center">
+                <div className="group flex items-center gap-2 text-primary">
+                  <span className="text-base md:text-lg lg:text-xl font-medium">
+                    View more
+                  </span>
+                  <GoArrowUpRight className="w-5 h-5 md:w-6 md:h-6" />
+                </div>
+              </div>
             </div>
-
-            <Link
-              href={Exclusive_Locations.viewMore.link}
-              className="group flex items-center gap-2 text-primary hover:text-primary/80 transition-colors duration-200 lg:self-center"
-            >
-              <span className="text-base md:text-lg lg:text-xl font-medium">
-                {Exclusive_Locations.viewMore.text}
-              </span>
-              <GoArrowUpRight className="w-5 h-5 md:w-6 md:h-6 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Link>
+            <div className="border-t border-gray-300" aria-hidden="true" />
+            <LocationsLoader />
           </div>
-
-          <div className="border-t border-gray-300" aria-hidden="true" />
-
-          {/* 6 Locations Grid */}
-          <div className={locationGridClasses}>
-            {locationsWithCount.map((location) => (
-              <LocationCard
-                key={location.id}
-                location={location}
-                yachtsCount={location.yachtsCount}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <LocationsSection locationsData={locationsData} yachtsData={yachtsData} />
+      )}
     </main>
   );
 }
+
+export default CharterPageContent;

@@ -2,10 +2,8 @@ import Link from "next/link";
 import Banner from "../../components/Banner";
 import { GoArrowUpRight } from "react-icons/go";
 import YachtCard from "../../components/YachtCard";
-import yachts from "../../../data/yachts.json";
 import PerfectYachtBanner from "../../components/PerfectYachtBanner";
 import LocationCard from "../../components/LocationCard";
-import locationsData from "../../../data/locations.json";
 
 const YACHT_DISPLAY_CONFIG = {
   limit: 6,
@@ -19,8 +17,8 @@ const YACHT_DISPLAY_CONFIG = {
 
 const LOCATIONS_GRID_CONFIG = {
   base: "grid-cols-1",
-  md: "md:grid-cols-2", 
-  lg: "lg:grid-cols-3", 
+  md: "md:grid-cols-2",
+  lg: "lg:grid-cols-3",
   gap: "gap-8"
 };
 
@@ -50,54 +48,73 @@ const Design_Routes = {
   },
 };
 
-const STATS_CONFIG = {
-  destinations: {
-    label: "Destinations",
-    className: "flex items-center gap-2"
-  },
-  yachts: {
-    label: "Luxury Yachts", 
-    className: "flex items-center gap-2"
-  },
-  ports: {
-    label: "Active Ports",
-    className: "flex items-center gap-2"
-  }
-};
+// Server component that fetches yachts from database
+async function getYachts(limit = null) {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/yachts`, {
+      cache: 'no-store'
+    });
 
-export default function Location() {
-  const displayedYachts = yachts.slice(0, YACHT_DISPLAY_CONFIG.limit);
+    if (!response.ok) {
+      throw new Error('Failed to fetch yachts');
+    }
+
+    const allYachts = await response.json();
+    return typeof limit === "number" ? allYachts.slice(0, limit) : allYachts;
+  } catch (error) {
+    console.error('Error fetching yachts:', error);
+    return [];
+  }
+}
+
+// Server component that fetches locations from database
+async function getLocations() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/locations`, {
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch locations');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching locations:', error);
+    return [];
+  }
+}
+
+export default async function Location() {
+  // Fetch both yachts and locations from database
+  const [yachtsData, locationsData] = await Promise.all([
+    getYachts(),
+    getLocations()
+  ]);
+
+  const displayedYachts = yachtsData.slice(0, YACHT_DISPLAY_CONFIG.limit);
   const yachtGridClasses = `grid ${YACHT_DISPLAY_CONFIG.grid.base} ${YACHT_DISPLAY_CONFIG.grid.md} ${YACHT_DISPLAY_CONFIG.grid.lg} ${YACHT_DISPLAY_CONFIG.grid.xl} gap-8`;
   const locationGridClasses = `grid ${LOCATIONS_GRID_CONFIG.base} ${LOCATIONS_GRID_CONFIG.md} ${LOCATIONS_GRID_CONFIG.lg} ${LOCATIONS_GRID_CONFIG.gap}`;
 
-  // Dynamic count calculate karo
-  const locationsWithCount = locationsData.map(location => {
-    const yachtsCount = yachts.filter(yacht => 
+  // Dynamic count calculate karo - database se aaye yachts data ke according
+  const locationsWithCount = locationsData.map((location) => {
+    const yachtsCount = yachtsData.filter(yacht =>
       yacht.location?.city === location.title
     ).length;
-    
+
     return {
       ...location,
       yachtsCount
     };
   });
 
-  const totalYachts = locationsWithCount.reduce((sum, location) => sum + location.yachtsCount, 0);
-  const totalDestinations = locationsWithCount.length;
-  const activePortsCount = locationsWithCount.filter(loc => loc.yachtsCount > 0).length;
-
-  // Stats data const se
-  const statsData = [
-    { value: totalDestinations, ...STATS_CONFIG.destinations },
-    { value: `${totalYachts}+`, ...STATS_CONFIG.yachts },
-    { value: activePortsCount, ...STATS_CONFIG.ports }
-  ];
-
   return (
     <>
       <Banner
-        mainHeading="Explore the World’s Most Exquisite Waters"
-        description="Get ready to embark on a voyage that will fascinate and excite you to the core. Whether you are drawn to the pulsating nightlife, the serenity of pure nature, or the privacy of an exclusive escape, HalaYachts unlocks the door to the world’s most enchanting waters."
+        mainHeading="Explore the World's Most Exquisite Waters"
+        description="Get ready to embark on a voyage that will fascinate and excite you to the core. Whether you are drawn to the pulsating nightlife, the serenity of pure nature, or the privacy of an exclusive escape, HalaYachts unlocks the door to the world's most enchanting waters."
         showContact={false}
         height="medium"
         backgroundImage="/images/location.png"
@@ -114,28 +131,26 @@ export default function Location() {
               <p className="text-base md:text-lg lg:text-xl tracking-wider font-light text-gray-700 max-w-4xl">
                 {Curated_Global_Ports.description}
               </p>
-              
-              {/* Stats - Const se */}
-              {/* <div className="flex flex-wrap gap-6 mt-4">
-                {statsData.map((stat, index) => (
-                  <div key={index} className={stat.className}>
-                    <span className="text-2xl font-bold text-primary">{stat.value}</span>
-                    <span className="text-gray-600">{stat.label}</span>
-                  </div>
-                ))}
-              </div> */}
             </div>
           </div>
 
           {/* Location Cards Grid */}
           <div className={locationGridClasses}>
-            {locationsWithCount.map((location) => (
-              <LocationCard 
-                key={location.id} 
-                location={location}
-                yachtsCount={location.yachtsCount}
-              />
-            ))}
+            {locationsWithCount.length > 0 ? (
+              locationsWithCount.map((location) => (
+                <LocationCard
+                  key={location.id}
+                  location={location}
+                  yachtsCount={location.yachtsCount}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500 text-lg">
+                  No locations available at the moment.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -195,18 +210,18 @@ export default function Location() {
           <div className="border-t border-gray-300" aria-hidden="true" />
 
           <div className={yachtGridClasses}>
-            {displayedYachts.map((yacht) => (
-              <YachtCard key={yacht.id} yacht={yacht} />
-            ))}
+            {displayedYachts.length > 0 ? (
+              displayedYachts.map((yacht) => (
+                <YachtCard key={yacht.id} yacht={yacht} />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500 text-lg">
+                  No yachts available at the moment.
+                </p>
+              </div>
+            )}
           </div>
-
-          {yachts.length === 0 && (
-            <div className="text-center py-12" role="status" aria-live="polite">
-              <p className="text-gray-500 text-lg">
-                No yachts available at the moment.
-              </p>
-            </div>
-          )}
         </div>
       </section>
     </>
