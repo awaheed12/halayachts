@@ -8,14 +8,11 @@
 // } 
 // app/location/[city]/generateStaticParams.js
 
+import { getApiUrl } from '@/lib/utils';
+
 async function getLocations() {
   try {
-    // Build API URL for server-side fetching
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
-       process.env.VERCEL ? `https://${process.env.VERCEL}` : 
-       'http://localhost:3000');
-    const apiUrl = `${baseUrl}/api/locations`;
+    const apiUrl = getApiUrl('/api/locations');
     
     const response = await fetch(apiUrl, {
       next: { revalidate: 3600 }, // 1 hour cache
@@ -25,12 +22,14 @@ async function getLocations() {
     });
     
     if (!response.ok) {
-      throw new Error('Failed to fetch locations');
+      throw new Error(`Failed to fetch locations: ${response.status}`);
     }
     
     return await response.json();
   } catch (error) {
-    console.error('Error generating static params:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error generating static params:', error);
+    }
     return [];
   }
 }

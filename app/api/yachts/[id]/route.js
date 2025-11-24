@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../../../lib/mongodb';
 import { ObjectId } from 'mongodb';
+import { logger, formatErrorResponse, isProduction } from '../../../../lib/utils';
 
 // Force dynamic rendering for real-time data
 export const dynamic = 'force-dynamic';
@@ -26,7 +27,7 @@ export async function GET(request, { params }) {
         });
       } catch (objectIdError) {
         // If ObjectId conversion fails, treat as slug
-        console.log('ObjectId conversion failed, treating as slug');
+        // ObjectId conversion failed, treating as slug
       }
     }
     
@@ -50,9 +51,14 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(yacht);
   } catch (error) {
-    console.error('Error fetching yacht:', error);
+    logger.error('Error fetching yacht:', error);
+    
+    const errorResponse = isProduction()
+      ? { error: 'Failed to fetch yacht' }
+      : formatErrorResponse(error);
+
     return NextResponse.json(
-      { error: 'Failed to fetch yacht' },
+      errorResponse,
       { status: 500 }
     );
   }
@@ -129,9 +135,14 @@ export async function PUT(request, { params }) {
       yacht: updatedYacht
     });
   } catch (error) {
-    console.error('Error updating yacht:', error);
+    logger.error('Error updating yacht:', error);
+    
+    const errorResponse = isProduction()
+      ? { error: 'Failed to update yacht' }
+      : formatErrorResponse(error);
+
     return NextResponse.json(
-      { error: 'Failed to update yacht' },
+      errorResponse,
       { status: 500 }
     );
   }
@@ -174,9 +185,14 @@ export async function DELETE(request, { params }) {
       message: 'Yacht deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting yacht:', error);
+    logger.error('Error deleting yacht:', error);
+    
+    const errorResponse = isProduction()
+      ? { error: 'Failed to delete yacht' }
+      : formatErrorResponse(error);
+
     return NextResponse.json(
-      { error: 'Failed to delete yacht' },
+      errorResponse,
       { status: 500 }
     );
   }

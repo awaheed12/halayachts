@@ -1,5 +1,9 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import Subscriber from "@/models/Subscriber";
+import { logger, formatErrorResponse, isProduction } from "@/lib/utils";
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   await connectToDatabase();
@@ -26,11 +30,13 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error("Error fetching subscribers:", error);
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: "Error fetching subscribers" 
-    }), { 
+    logger.error("Error fetching subscribers:", error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: "Error fetching subscribers" }
+      : { success: false, ...formatErrorResponse(error) };
+
+    return new Response(JSON.stringify(errorResponse), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -91,11 +97,13 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    console.error("Error adding subscriber:", error);
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: "Failed to add subscriber" 
-    }), { 
+    logger.error("Error adding subscriber:", error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: "Failed to add subscriber" }
+      : { success: false, ...formatErrorResponse(error) };
+
+    return new Response(JSON.stringify(errorResponse), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -140,11 +148,13 @@ export async function DELETE(request) {
     });
 
   } catch (error) {
-    console.error("Error deleting subscriber:", error);
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: "Failed to delete subscriber" 
-    }), { 
+    logger.error("Error deleting subscriber:", error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: "Failed to delete subscriber" }
+      : { success: false, ...formatErrorResponse(error) };
+
+    return new Response(JSON.stringify(errorResponse), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

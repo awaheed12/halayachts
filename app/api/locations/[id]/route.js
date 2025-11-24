@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../../../lib/mongodb';
 import mongoose from 'mongoose';
 import { ObjectId } from 'mongodb';
+import { logger, formatErrorResponse, isProduction } from '../../../../lib/utils';
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 // GET - Single location by ID
 export async function GET(request, { params }) {
@@ -31,9 +35,14 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(serializedLocation);
   } catch (error) {
-    console.error('Error fetching location:', error);
+    logger.error('Error fetching location:', error);
+    
+    const errorResponse = isProduction()
+      ? { error: 'Failed to fetch location' }
+      : formatErrorResponse(error);
+
     return NextResponse.json(
-      { error: 'Failed to fetch location' },
+      errorResponse,
       { status: 500 }
     );
   }
@@ -99,9 +108,14 @@ export async function PUT(request, { params }) {
       }
     });
   } catch (error) {
-    console.error('Error updating location:', error);
+    logger.error('Error updating location:', error);
+    
+    const errorResponse = isProduction()
+      ? { error: 'Failed to update location' }
+      : formatErrorResponse(error);
+
     return NextResponse.json(
-      { error: 'Failed to update location' },
+      errorResponse,
       { status: 500 }
     );
   }
@@ -144,9 +158,14 @@ export async function DELETE(request, { params }) {
       message: 'Location deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting location:', error);
+    logger.error('Error deleting location:', error);
+    
+    const errorResponse = isProduction()
+      ? { error: 'Failed to delete location' }
+      : formatErrorResponse(error);
+
     return NextResponse.json(
-      { error: 'Failed to delete location' },
+      errorResponse,
       { status: 500 }
     );
   }

@@ -362,8 +362,6 @@ export default function LocationDetail() {
 
     async function fetchData() {
       try {
-        console.log('Fetching data for location:', city);
-        
         // Parallel fetch for better performance
         const [locationsResponse, yachtsResponse] = await Promise.all([
           fetch('/api/locations'),
@@ -382,7 +380,9 @@ export default function LocationDetail() {
           }
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error fetching data:', error);
+        }
       } finally {
         if (isMounted) {
           setLoading(false);

@@ -1,5 +1,9 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import ContactMessage from "@/models/ContactMessage";
+import { logger, formatErrorResponse, isProduction } from "@/lib/utils";
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 // Save a new contact message
 export async function POST(request) {
@@ -52,12 +56,14 @@ export async function POST(request) {
       }
     );
   } catch (error) {
-    console.error("Error saving contact message:", error);
+    logger.error("Error saving contact message:", error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: "Failed to submit contact form" }
+      : { success: false, ...formatErrorResponse(error) };
+
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: "Failed to submit contact form",
-      }),
+      JSON.stringify(errorResponse),
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
@@ -98,12 +104,14 @@ export async function GET() {
       }
     );
   } catch (error) {
-    console.error("Error fetching contact messages:", error);
+    logger.error("Error fetching contact messages:", error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: "Error fetching contact messages" }
+      : { success: false, ...formatErrorResponse(error) };
+
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: "Error fetching contact messages",
-      }),
+      JSON.stringify(errorResponse),
       {
         status: 500,
         headers: { "Content-Type": "application/json" },

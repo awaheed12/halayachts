@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../../lib/mongodb';
+import { logger, formatErrorResponse, isProduction } from '../../../lib/utils';
 
 // Force dynamic rendering for real-time data
 export const dynamic = 'force-dynamic';
@@ -11,13 +12,22 @@ export async function GET() {
     
     const yachts = await db.collection('yachts').find({}).toArray();
     
-    console.log('Fetched yachts count:', yachts.length); // Debug log
+    logger.log(`Fetched ${yachts.length} yachts`);
     
-    return NextResponse.json(yachts);
+    return NextResponse.json(yachts, {
+      headers: {
+        'Cache-Control': 'no-store, must-revalidate',
+      },
+    });
   } catch (error) {
-    console.error('Error fetching yachts:', error);
+    logger.error('Error fetching yachts:', error);
+    
+    const errorResponse = isProduction()
+      ? { error: 'Failed to fetch yachts' }
+      : formatErrorResponse(error);
+
     return NextResponse.json(
-      { error: 'Failed to fetch yachts' },
+      errorResponse,
       { status: 500 }
     );
   }
@@ -76,9 +86,14 @@ export async function POST(request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error creating yacht:', error);
+    logger.error('Error creating yacht:', error);
+    
+    const errorResponse = isProduction()
+      ? { error: 'Failed to create yacht' }
+      : formatErrorResponse(error);
+
     return NextResponse.json(
-      { error: 'Failed to create yacht' },
+      errorResponse,
       { status: 500 }
     );
   }

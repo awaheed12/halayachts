@@ -1,6 +1,10 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import ContactMessage from "@/models/ContactMessage";
 import mongoose from "mongoose";
+import { logger, formatErrorResponse, isProduction } from "@/lib/utils";
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 const buildResponse = (body, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -40,11 +44,13 @@ export async function GET(_request, { params }) {
       },
     });
   } catch (error) {
-    console.error("Error fetching contact message:", error);
-    return buildResponse(
-      { success: false, error: "Failed to fetch message" },
-      500
-    );
+    logger.error("Error fetching contact message:", error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: "Failed to fetch message" }
+      : { success: false, ...formatErrorResponse(error) };
+
+    return buildResponse(errorResponse, 500);
   }
 }
 
@@ -103,11 +109,13 @@ export async function PUT(request, { params }) {
       },
     });
   } catch (error) {
-    console.error("Error updating contact message:", error);
-    return buildResponse(
-      { success: false, error: "Failed to update message" },
-      500
-    );
+    logger.error("Error updating contact message:", error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: "Failed to update message" }
+      : { success: false, ...formatErrorResponse(error) };
+
+    return buildResponse(errorResponse, 500);
   }
 }
 
@@ -131,11 +139,13 @@ export async function DELETE(_request, { params }) {
       message: "Message deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting contact message:", error);
-    return buildResponse(
-      { success: false, error: "Failed to delete message" },
-      500
-    );
+    logger.error("Error deleting contact message:", error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: "Failed to delete message" }
+      : { success: false, ...formatErrorResponse(error) };
+
+    return buildResponse(errorResponse, 500);
   }
 }
 

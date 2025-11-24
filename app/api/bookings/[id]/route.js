@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import Booking from '@/models/Booking';
+import { logger, formatErrorResponse, isProduction } from '@/lib/utils';
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 export async function PATCH(request, { params }) {
   try {
@@ -38,11 +42,13 @@ export async function PATCH(request, { params }) {
     });
 
   } catch (error) {
-    console.error('Error updating booking:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error('Error updating booking:', error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: 'Internal server error' }
+      : { success: false, ...formatErrorResponse(error) };
+
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 
@@ -67,11 +73,13 @@ export async function GET(request, { params }) {
     });
 
   } catch (error) {
-    console.error('Error fetching booking:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error('Error fetching booking:', error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: 'Internal server error' }
+      : { success: false, ...formatErrorResponse(error) };
+
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 
@@ -96,10 +104,12 @@ export async function DELETE(request, { params }) {
     });
 
   } catch (error) {
-    console.error('Error deleting booking:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error('Error deleting booking:', error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: 'Internal server error' }
+      : { success: false, ...formatErrorResponse(error) };
+
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }

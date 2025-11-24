@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../../lib/mongodb';
 import mongoose from 'mongoose';
+import { logger, formatErrorResponse, isProduction } from '../../../lib/utils';
 
 // Force dynamic rendering for real-time data
 export const dynamic = 'force-dynamic';
@@ -23,11 +24,22 @@ export async function GET() {
       image: location.image
     }));
 
-    return NextResponse.json(serializedLocations);
+    logger.log(`Fetched ${serializedLocations.length} locations`);
+
+    return NextResponse.json(serializedLocations, {
+      headers: {
+        'Cache-Control': 'no-store, must-revalidate',
+      },
+    });
   } catch (error) {
-    console.error('Error fetching locations:', error);
+    logger.error('Error fetching locations:', error);
+    
+    const errorResponse = isProduction()
+      ? { error: 'Failed to fetch locations' }
+      : formatErrorResponse(error);
+
     return NextResponse.json(
-      { error: 'Failed to fetch locations' },
+      errorResponse,
       { status: 500 }
     );
   }
@@ -81,9 +93,14 @@ export async function POST(request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error creating location:', error);
+    logger.error('Error creating location:', error);
+    
+    const errorResponse = isProduction()
+      ? { error: 'Failed to create location' }
+      : formatErrorResponse(error);
+
     return NextResponse.json(
-      { error: 'Failed to create location' },
+      errorResponse,
       { status: 500 }
     );
   }

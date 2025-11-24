@@ -1,5 +1,9 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import Subscriber from "@/models/Subscriber";
+import { logger, formatErrorResponse, isProduction } from "@/lib/utils";
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 export async function POST(req) {
   await connectToDatabase();
@@ -39,11 +43,13 @@ export async function POST(req) {
     });
 
   } catch (error) {
-    console.error("Newsletter Error:", error);
-    return new Response(JSON.stringify({ 
-      success: false,
-      error: "We are experiencing technical issues. Please try again later." 
-    }), { 
+    logger.error("Newsletter subscription error:", error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: "We are experiencing technical issues. Please try again later." }
+      : { success: false, ...formatErrorResponse(error) };
+
+    return new Response(JSON.stringify(errorResponse), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -74,11 +80,13 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error("Error:", error);
-    return new Response(JSON.stringify({ 
-      success: false,
-      error: "Failed to fetch subscribers data" 
-    }), { 
+    logger.error("Error fetching newsletter data:", error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: "Failed to fetch subscribers data" }
+      : { success: false, ...formatErrorResponse(error) };
+
+    return new Response(JSON.stringify(errorResponse), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

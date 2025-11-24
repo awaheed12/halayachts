@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import Booking from '@/models/Booking';
+import { logger, formatErrorResponse, isProduction } from '@/lib/utils';
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
   try {
@@ -53,7 +57,7 @@ export async function POST(request) {
     );
 
   } catch (error) {
-    console.error('Booking submission error:', error);
+    logger.error('Booking submission error:', error);
     
     // Handle duplicate key errors
     if (error.code === 11000) {
@@ -78,11 +82,12 @@ export async function POST(request) {
       );
     }
 
+    const errorResponse = isProduction()
+      ? { success: false, error: 'Internal server error' }
+      : { success: false, ...formatErrorResponse(error) };
+
     return NextResponse.json(
-      { 
-        success: false,
-        error: 'Internal server error' 
-      },
+      errorResponse,
       { status: 500 }
     );
   }
@@ -124,12 +129,14 @@ export async function GET(request) {
     });
 
   } catch (error) {
-    console.error('Error fetching bookings:', error);
+    logger.error('Error fetching bookings:', error);
+    
+    const errorResponse = isProduction()
+      ? { success: false, error: 'Internal server error' }
+      : { success: false, ...formatErrorResponse(error) };
+
     return NextResponse.json(
-      { 
-        success: false,
-        error: 'Internal server error' 
-      },
+      errorResponse,
       { status: 500 }
     );
   }
@@ -138,7 +145,7 @@ export async function GET(request) {
 // Email notification function
 async function sendBookingNotification(booking) {
   try {
-    console.log('📧 New Booking Notification:', {
+    logger.log('New Booking Notification:', {
       bookingReference: booking.bookingReference,
       yacht: booking.yachtTitle,
       type: booking.charterType,
@@ -153,6 +160,6 @@ async function sendBookingNotification(booking) {
     // Example with nodemailer or Resend
 
   } catch (error) {
-    console.error('Error sending notification:', error);
+    logger.error('Error sending notification:', error);
   }
 }

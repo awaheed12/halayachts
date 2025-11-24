@@ -11,11 +11,11 @@ import PerfectYachtBanner from "@/app/components/PerfectYachtBanner";
 import LocationMap from "@/app/components/LocationMap";
 import FeaturesSection from "@/app/components/FeaturesSection";
 import GallerySection from "@/app/components/GallerySection";
+import { clientLogger } from "@/lib/clientLogger";
 
 // Client-side function that fetches yacht by slug from database
 async function getYachtBySlug(slug) {
   try {
-    // Use relative URL for client-side fetching - works in both dev and production
     const response = await fetch(`/api/yachts/${slug}`, {
       cache: 'no-store',
       headers: {
@@ -24,12 +24,14 @@ async function getYachtBySlug(slug) {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch yacht');
+      throw new Error(`Failed to fetch yacht: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching yacht:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching yacht:', error);
+    }
     return null;
   }
 }
@@ -62,7 +64,7 @@ export default function YachtDetailPage({ params }) {
 
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching yacht data:', error);
+        clientLogger.error('Error fetching yacht data:', error);
         setLoading(false);
       }
     };

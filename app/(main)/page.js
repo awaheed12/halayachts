@@ -87,15 +87,13 @@ const Exclusive_Locations = {
   },
 };
 
+import { getApiUrl } from '@/lib/utils';
+import { connectToDatabase } from '@/lib/mongodb';
+
 // Server component that fetches yachts from database
 async function getYachts(limit = null) {
   try {
-    // Build API URL for server-side fetching
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
-       process.env.VERCEL ? `https://${process.env.VERCEL}` : 
-       'http://localhost:3000');
-    const apiUrl = `${baseUrl}/api/yachts`;
+    const apiUrl = getApiUrl('/api/yachts');
     
     const response = await fetch(apiUrl, {
       cache: 'no-store',
@@ -105,13 +103,16 @@ async function getYachts(limit = null) {
     });
     
     if (!response.ok) {
-      throw new Error('Failed to fetch yachts');
+      throw new Error(`Failed to fetch yachts: ${response.status}`);
     }
     
     const allYachts = await response.json();
     return typeof limit === "number" ? allYachts.slice(0, limit) : allYachts;
   } catch (error) {
-    console.error('Error fetching yachts:', error);
+    // Silently return empty array in production to prevent page crashes
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching yachts:', error);
+    }
     return [];
   }
 }
@@ -119,12 +120,7 @@ async function getYachts(limit = null) {
 // Server component that fetches locations from database
 async function getLocations(limit = 6) {
   try {
-    // Build API URL for server-side fetching
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
-       process.env.VERCEL ? `https://${process.env.VERCEL}` : 
-       'http://localhost:3000');
-    const apiUrl = `${baseUrl}/api/locations`;
+    const apiUrl = getApiUrl('/api/locations');
     
     const response = await fetch(apiUrl, {
       cache: 'no-store',
@@ -134,13 +130,16 @@ async function getLocations(limit = 6) {
     });
     
     if (!response.ok) {
-      throw new Error('Failed to fetch locations');
+      throw new Error(`Failed to fetch locations: ${response.status}`);
     }
     
     const allLocations = await response.json();
     return allLocations.slice(0, limit);
   } catch (error) {
-    console.error('Error fetching locations:', error);
+    // Silently return empty array in production to prevent page crashes
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching locations:', error);
+    }
     return [];
   }
 }

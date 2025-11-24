@@ -9,11 +9,11 @@ import { useSearchParams } from 'next/navigation';
 import PerfectYachtBanner from '../../components/PerfectYachtBanner';
 import Link from 'next/link';
 import LocationCard from '../../components/LocationCard';
+import { clientLogger } from '@/lib/clientLogger';
 
 // Client-side function that fetches yachts from database
 async function getYachts() {
   try {
-    // Use relative URL for client-side fetching - works in both dev and production
     const response = await fetch('/api/yachts', { 
       cache: 'no-store',
       headers: {
@@ -22,12 +22,14 @@ async function getYachts() {
     });
     
     if (!response.ok) {
-      throw new Error('Failed to fetch yachts');
+      throw new Error(`Failed to fetch yachts: ${response.status}`);
     }
     
     return await response.json();
   } catch (error) {
-    console.error('Error fetching yachts:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching yachts:', error);
+    }
     return [];
   }
 }
@@ -35,7 +37,6 @@ async function getYachts() {
 // Client-side function that fetches locations from database
 async function getLocations(limit = 6) {
   try {
-    // Use relative URL for client-side fetching - works in both dev and production
     const response = await fetch('/api/locations', { 
       cache: 'no-store',
       headers: {
@@ -44,13 +45,15 @@ async function getLocations(limit = 6) {
     });
     
     if (!response.ok) {
-      throw new Error('Failed to fetch locations');
+      throw new Error(`Failed to fetch locations: ${response.status}`);
     }
     
     const allLocations = await response.json();
     return allLocations.slice(0, limit);
   } catch (error) {
-    console.error('Error fetching locations:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching locations:', error);
+    }
     return [];
   }
 }
@@ -297,7 +300,7 @@ function CharterPageContent() {
         const data = await getYachts();
         setYachtsData(data);
       } catch (error) {
-        console.error('Error fetching yachts:', error);
+        clientLogger.error('Error fetching yachts:', error);
         setYachtsData([]);
       } finally {
         setLoadingYachts(false);
@@ -314,7 +317,7 @@ function CharterPageContent() {
         const data = await getLocations(6);
         setLocationsData(data);
       } catch (error) {
-        console.error('Error fetching locations:', error);
+        clientLogger.error('Error fetching locations:', error);
         setLocationsData([]);
       } finally {
         setLoadingLocations(false);
