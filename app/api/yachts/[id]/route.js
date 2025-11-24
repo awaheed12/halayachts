@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../../../lib/mongodb';
 import { ObjectId } from 'mongodb';
 
+// Force dynamic rendering for real-time data
+export const dynamic = 'force-dynamic';
+
 // GET - Fetch yacht by ID or slug
 export async function GET(request, { params }) {
   try {

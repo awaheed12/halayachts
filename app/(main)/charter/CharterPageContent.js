@@ -10,12 +10,15 @@ import PerfectYachtBanner from '../../components/PerfectYachtBanner';
 import Link from 'next/link';
 import LocationCard from '../../components/LocationCard';
 
-// Server component that fetches yachts from database
+// Client-side function that fetches yachts from database
 async function getYachts() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/yachts`, { 
-      cache: 'no-store'
+    // Use relative URL for client-side fetching - works in both dev and production
+    const response = await fetch('/api/yachts', { 
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
     
     if (!response.ok) {
@@ -29,12 +32,15 @@ async function getYachts() {
   }
 }
 
-// Server component that fetches locations from database
+// Client-side function that fetches locations from database
 async function getLocations(limit = 6) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/locations`, { 
-      cache: 'no-store'
+    // Use relative URL for client-side fetching - works in both dev and production
+    const response = await fetch('/api/locations', { 
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
     
     if (!response.ok) {

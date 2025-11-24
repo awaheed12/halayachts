@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../../lib/mongodb';
 
+// Force dynamic rendering for real-time data
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const { connection } = await connectToDatabase();

@@ -12,12 +12,15 @@ import LocationMap from "@/app/components/LocationMap";
 import FeaturesSection from "@/app/components/FeaturesSection";
 import GallerySection from "@/app/components/GallerySection";
 
-// Server component that fetches yacht by slug from database
+// Client-side function that fetches yacht by slug from database
 async function getYachtBySlug(slug) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/yachts/${slug}`, {
-      cache: 'no-store'
+    // Use relative URL for client-side fetching - works in both dev and production
+    const response = await fetch(`/api/yachts/${slug}`, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
 
     if (!response.ok) {

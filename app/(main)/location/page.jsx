@@ -51,9 +51,18 @@ const Design_Routes = {
 // Server component that fetches yachts from database
 async function getYachts(limit = null) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/yachts`, {
-      cache: 'no-store'
+    // Build API URL for server-side fetching
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+       process.env.VERCEL ? `https://${process.env.VERCEL}` : 
+       'http://localhost:3000');
+    const apiUrl = `${baseUrl}/api/yachts`;
+    
+    const response = await fetch(apiUrl, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
 
     if (!response.ok) {
@@ -71,9 +80,18 @@ async function getYachts(limit = null) {
 // Server component that fetches locations from database
 async function getLocations() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/locations`, {
-      cache: 'no-store'
+    // Build API URL for server-side fetching
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+       process.env.VERCEL ? `https://${process.env.VERCEL}` : 
+       'http://localhost:3000');
+    const apiUrl = `${baseUrl}/api/locations`;
+    
+    const response = await fetch(apiUrl, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
 
     if (!response.ok) {
@@ -86,6 +104,9 @@ async function getLocations() {
     return [];
   }
 }
+
+// Force dynamic rendering for real-time data
+export const dynamic = 'force-dynamic';
 
 export default async function Location() {
   // Fetch both yachts and locations from database

@@ -10,9 +10,18 @@
 
 async function getLocations() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/locations`, {
-      next: { revalidate: 3600 } // 1 hour cache
+    // Build API URL for server-side fetching
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+       process.env.VERCEL ? `https://${process.env.VERCEL}` : 
+       'http://localhost:3000');
+    const apiUrl = `${baseUrl}/api/locations`;
+    
+    const response = await fetch(apiUrl, {
+      next: { revalidate: 3600 }, // 1 hour cache
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
     
     if (!response.ok) {

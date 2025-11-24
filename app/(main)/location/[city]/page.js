@@ -299,43 +299,8 @@ const FILTER_LOGIC = {
   },
 };
 
-// Server component that fetches yachts from database
-async function getYachts() {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/yachts`, {
-      cache: 'no-store'
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch yachts');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching yachts:', error);
-    return [];
-  }
-}
-
-// Server component that fetches locations from database
-async function getLocations() {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/locations`, {
-      cache: 'no-store'
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch locations');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching locations:', error);
-    return [];
-  }
-}
+// These functions are not used in this client component - data is fetched via useEffect
+// Keeping for reference but they're replaced by client-side fetch calls
 
 // Empty State Component (outside main component)
 const EmptyStateIcon = () => (
